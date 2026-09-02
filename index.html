@@ -220,16 +220,16 @@
         <div class="container-fluid px-2 px-md-4">
             <a class="navbar-brand d-none d-md-block" href="#"><i class="bi bi-wallet2 me-2"></i>ร้านอั่งเปา</a>
             <div class="navbar-nav mx-auto px-2 px-md-0">
-                <a class="nav-link active" href="#" onclick="switchPage('page-pos', this)"><i class="bi bi-shop me-1 d-none d-sm-inline"></i> POS</a>
-                <a class="nav-link" href="#" onclick="switchPage('page-debtors', this)"><i class="bi bi-person-lines-fill me-1 d-none d-sm-inline"></i> ลูกหนี้</a>
-                <a class="nav-link" href="#" onclick="switchPage('page-history', this)"><i class="bi bi-graph-up-arrow me-1 d-none d-sm-inline"></i> รายงาน</a>
-                <a class="nav-link" href="#" onclick="switchPage('page-order', this)"><i class="bi bi-receipt-cutoff me-1 d-none d-sm-inline"></i> บิล</a>
-                <a class="nav-link" href="#" onclick="switchPage('page-manage-pos', this)"><i class="bi bi-boxes me-1 d-none d-sm-inline"></i> คลัง POS</a>
-                <a class="nav-link" href="#" onclick="switchPage('page-manage-stock', this)"><i class="bi bi-truck me-1 d-none d-sm-inline"></i> คลังบิล</a>
+                <a class="nav-link active" href="#" onclick="window.switchPage('page-pos', this)"><i class="bi bi-shop me-1 d-none d-sm-inline"></i> POS</a>
+                <a class="nav-link" href="#" onclick="window.switchPage('page-debtors', this)"><i class="bi bi-person-lines-fill me-1 d-none d-sm-inline"></i> ลูกหนี้</a>
+                <a class="nav-link" href="#" onclick="window.switchPage('page-history', this)"><i class="bi bi-graph-up-arrow me-1 d-none d-sm-inline"></i> รายงาน</a>
+                <a class="nav-link" href="#" onclick="window.switchPage('page-order', this)"><i class="bi bi-receipt-cutoff me-1 d-none d-sm-inline"></i> บิล</a>
+                <a class="nav-link" href="#" onclick="window.switchPage('page-manage-pos', this)"><i class="bi bi-boxes me-1 d-none d-sm-inline"></i> คลัง POS</a>
+                <a class="nav-link" href="#" onclick="window.switchPage('page-manage-stock', this)"><i class="bi bi-truck me-1 d-none d-sm-inline"></i> คลังบิล</a>
             </div>
             <div class="d-flex align-items-center text-white small">
                 <span class="d-none d-xl-inline"><i class="bi bi-person-circle me-1"></i><b id="currentUserDisplay">-</b></span>
-                <button class="btn btn-sm btn-danger px-2 py-1 ms-2" onclick="handleLogout()"><i class="bi bi-box-arrow-right"></i></button>
+                <button class="btn btn-sm btn-danger px-2 py-1 ms-2" onclick="window.handleLogout()"><i class="bi bi-box-arrow-right"></i></button>
             </div>
         </div>
     </nav>
@@ -248,8 +248,8 @@
                         <div class="bg-white p-3 rounded-4 shadow-sm mb-3 border">
                             <div class="input-group">
                                 <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                                <input type="text" id="posSearchInput" class="form-control border-start-0 ps-0 bg-transparent" placeholder="ค้นหาสินค้า..." onkeyup="searchPOSProduct()">
-                                <button class="btn" style="background-color: #ffc107; color: #000; font-weight: 600;" onclick="addCustomPOSItem()">กำหนดราคา</button>
+                                <input type="text" id="posSearchInput" class="form-control border-start-0 ps-0 bg-transparent" placeholder="ค้นหาสินค้า..." onkeyup="window.searchPOSProduct()">
+                                <button class="btn" style="background-color: #ffc107; color: #000; font-weight: 600;" onclick="window.addCustomPOSItem()">กำหนดราคา</button>
                             </div>
                         </div>
                         <div class="pos-grid-container p-1">
@@ -277,8 +277,8 @@
                                 <span style="color: var(--danger-color); font-weight: 800; font-size: 2.2rem; line-height: 1;" id="posTotal">฿0.00</span>
                             </div>
                             <div class="d-grid gap-2">
-                                <button class="btn text-white fw-bold py-3 shadow-sm fs-5" style="background-color: #10b981;" onclick="checkoutPOS()">จ่ายเงินสด</button>
-                                <button class="btn fw-bold py-3 shadow-sm fs-5 text-dark" style="background-color: #f59e0b;" onclick="checkoutCreditPOS()">ลงบัญชีเซ็น</button>
+                                <button class="btn text-white fw-bold py-3 shadow-sm fs-5" style="background-color: #10b981;" onclick="window.checkoutPOS()">จ่ายเงินสด</button>
+                                <button class="btn fw-bold py-3 shadow-sm fs-5 text-dark" style="background-color: #f59e0b;" onclick="window.checkoutCreditPOS()">ลงบัญชีเซ็น</button>
                             </div>
                         </div>
                     </div>
@@ -286,13 +286,13 @@
             </div>
         </div>
 
-        <!-- หน้าลูกหนี้ (มีระบบกรองและจัดเรียง) -->
+        <!-- หน้าลูกหนี้ -->
         <div id="page-debtors" class="page-section">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
                 <h4 class="fw-bold m-0 text-dark"><i class="bi bi-journal-bookmark-fill me-2 text-primary"></i>บัญชีลูกหนี้และเงินฝาก</h4>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-success fw-bold shadow-sm w-100 w-md-auto" onclick="exportDebtorsToExcel()"><i class="bi bi-file-earmark-excel me-1"></i>ส่งออก</button>
-                    <button class="btn btn-primary fw-bold shadow-sm w-100 w-md-auto" onclick="addNewDebtor()"><i class="bi bi-person-plus-fill me-1"></i>เพิ่มลูกค้า</button>
+                    <button class="btn btn-success fw-bold shadow-sm w-100 w-md-auto" onclick="window.exportDebtorsToExcel()"><i class="bi bi-file-earmark-excel me-1"></i>ส่งออก</button>
+                    <button class="btn btn-primary fw-bold shadow-sm w-100 w-md-auto" onclick="window.addNewDebtor()"><i class="bi bi-person-plus-fill me-1"></i>เพิ่มลูกค้า</button>
                 </div>
             </div>
             
@@ -314,18 +314,16 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-white p-3 border-bottom">
                     <div class="row g-2 align-items-center">
-                        <!-- ช่องค้นหา -->
                         <div class="col-12 col-md-7">
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                                <input type="text" id="debtorSearchInput" class="form-control border-start-0 ps-0 bg-light" placeholder="ค้นหาชื่อลูกค้า..." onkeyup="searchDebtor()">
+                                <input type="text" id="debtorSearchInput" class="form-control border-start-0 ps-0 bg-light" placeholder="ค้นหาชื่อลูกค้า..." onkeyup="window.searchDebtor()">
                             </div>
                         </div>
-                        <!-- ตัวเลือกการจัดเรียง/กรองหมวดหมู่ -->
                         <div class="col-12 col-md-5">
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0 text-muted small"><i class="bi bi-sort-down me-1"></i>จัดเรียง:</span>
-                                <select id="debtorSortFilter" class="form-select border-start-0 bg-light fw-bold text-secondary small" onchange="searchDebtor()">
+                                <select id="debtorSortFilter" class="form-select border-start-0 bg-light fw-bold text-secondary small" onchange="window.searchDebtor()">
                                     <option value="debt_desc">ยอดหนี้ค้าง (มาก ➔ น้อย)</option>
                                     <option value="debt_asc">ยอดหนี้ค้าง (น้อย ➔ มาก)</option>
                                     <option value="deposit_desc">เงินสแกนเหลือ (มาก ➔ น้อย)</option>
@@ -338,7 +336,6 @@
                     </div>
                 </div>
                 
-                <!-- Desktop Table View -->
                 <div class="table-responsive debtor-table-view">
                     <table class="table align-middle mb-0 text-nowrap">
                         <thead class="bg-light">
@@ -354,7 +351,6 @@
                     </table>
                 </div>
 
-                <!-- Mobile Card View -->
                 <div class="debtor-card-view p-3 bg-light" id="debtorListCards"></div>
             </div>
         </div>
@@ -364,12 +360,12 @@
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
                 <h4 class="fw-bold m-0"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>รายงานการขาย</h4>
                 <div class="d-flex gap-2">
-                    <select id="summaryType" class="form-select w-auto bg-white shadow-sm" onchange="toggleSummaryType()">
+                    <select id="summaryType" class="form-select w-auto bg-white shadow-sm" onchange="window.toggleSummaryType()">
                         <option value="daily">รายวัน</option>
                         <option value="monthly">รายเดือน</option>
                     </select>
-                    <input type="date" id="summaryDate" class="form-control w-auto bg-white shadow-sm" onchange="renderSalesSummary()">
-                    <input type="month" id="summaryMonth" class="form-control w-auto bg-white shadow-sm d-none" onchange="renderSalesSummary()">
+                    <input type="date" id="summaryDate" class="form-control w-auto bg-white shadow-sm" onchange="window.renderSalesSummary()">
+                    <input type="month" id="summaryMonth" class="form-control w-auto bg-white shadow-sm d-none" onchange="window.renderSalesSummary()">
                 </div>
             </div>
             <div class="row g-3 mb-4 text-white">
@@ -413,7 +409,7 @@
                         <div class="p-2 bg-light border-bottom">
                             <div class="input-group">
                                 <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                                <input type="text" id="orderSearchInput" class="form-control border-start-0 ps-0 bg-white" placeholder="ค้นหาสินค้า..." onkeyup="searchOrderProduct()">
+                                <input type="text" id="orderSearchInput" class="form-control border-start-0 ps-0 bg-white" placeholder="ค้นหาสินค้า..." onkeyup="window.searchOrderProduct()">
                             </div>
                         </div>
                         <div class="card-body p-0" style="max-height: 60vh; overflow-y: auto;">
@@ -426,8 +422,8 @@
 
                 <div class="col-lg-8">
                     <div class="d-flex justify-content-end gap-2 mb-3 exclude-print">
-                        <button class="btn btn-light border fw-bold text-danger" onclick="clearInvoice()"><i class="bi bi-eraser me-1 d-none d-sm-inline"></i>ล้าง</button>
-                        <button class="btn btn-primary fw-bold" style="background-color: var(--primary-color);" onclick="saveBillToDB()"><i class="bi bi-cloud-arrow-up me-1 d-none d-sm-inline"></i>บันทึกบิล</button>
+                        <button class="btn btn-light border fw-bold text-danger" onclick="window.clearInvoice()"><i class="bi bi-eraser me-1 d-none d-sm-inline"></i>ล้าง</button>
+                        <button class="btn btn-primary fw-bold" style="background-color: var(--primary-color);" onclick="window.saveBillToDB()"><i class="bi bi-cloud-arrow-up me-1 d-none d-sm-inline"></i>บันทึกบิล</button>
                         <button class="btn btn-success fw-bold" onclick="window.print()"><i class="bi bi-printer me-1 d-none d-sm-inline"></i>พิมพ์</button>
                     </div>
 
@@ -473,13 +469,13 @@
                         <div class="col-12 col-md-5">
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                                <input type="text" id="managePosSearchInput" class="form-control border-start-0 ps-0 bg-light" placeholder="ค้นหาชื่อสินค้า..." onkeyup="renderManageProducts('pos')">
+                                <input type="text" id="managePosSearchInput" class="form-control border-start-0 ps-0 bg-light" placeholder="ค้นหาชื่อสินค้า..." onkeyup="window.renderManageProducts('pos')">
                             </div>
                         </div>
                         <div class="col-12 col-md-4">
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0 text-muted small"><i class="bi bi-filter"></i> หมวดหมู่:</span>
-                                <select id="posCategoryFilter" class="form-select border-start-0 bg-light fw-bold text-secondary small" onchange="renderManageProducts('pos')">
+                                <select id="posCategoryFilter" class="form-select border-start-0 bg-light fw-bold text-secondary small" onchange="window.renderManageProducts('pos')">
                                     <option value="">ทั้งหมด</option>
                                 </select>
                             </div>
@@ -492,7 +488,7 @@
                 
                 <div class="p-3 border-bottom bg-light">
                     <h6 class="fw-bold text-muted mb-3 small"><i class="bi bi-plus-circle me-1"></i>เพิ่มสินค้าใหม่</h6>
-                    <form onsubmit="event.preventDefault(); saveSingleProduct('pos');">
+                    <form onsubmit="event.preventDefault(); window.saveSingleProduct('pos');">
                         <div class="row g-2 align-items-end">
                             <div class="col-md-4">
                                 <input id="pos-add-name" class="form-control" placeholder="ชื่อสินค้า" required>
@@ -547,7 +543,7 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                     <small class="text-muted d-none d-sm-block">* เว้นว่างช่องไว้หากไม่ต้องการบันทึกแถวนั้น</small>
-                    <button onclick="saveBatchProducts()" class="btn btn-success fw-bold px-4 shadow-sm w-100 w-sm-auto">
+                    <button onclick="window.saveBatchProducts()" class="btn btn-success fw-bold px-4 shadow-sm w-100 w-sm-auto">
                         <i class="bi bi-save me-1"></i> บันทึกรายการใหม่ทั้งหมด
                     </button>
                 </div>
@@ -559,13 +555,13 @@
                         <div class="col-12 col-md-5">
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                                <input type="text" id="stockSearchInput" class="form-control border-start-0 ps-0 bg-light" placeholder="ค้นหาชื่อสินค้าในคลัง..." onkeyup="renderManageProducts('stock')">
+                                <input type="text" id="stockSearchInput" class="form-control border-start-0 ps-0 bg-light" placeholder="ค้นหาชื่อสินค้าในคลัง..." onkeyup="window.renderManageProducts('stock')">
                             </div>
                         </div>
                         <div class="col-12 col-md-4">
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0 text-muted small"><i class="bi bi-filter"></i> หมวดหมู่:</span>
-                                <select id="stockCategoryFilter" class="form-select border-start-0 bg-light fw-bold text-secondary small" onchange="renderManageProducts('stock')">
+                                <select id="stockCategoryFilter" class="form-select border-start-0 bg-light fw-bold text-secondary small" onchange="window.renderManageProducts('stock')">
                                     <option value="">ทั้งหมด</option>
                                 </select>
                             </div>
@@ -613,7 +609,7 @@
 
     let currentUser = localStorage.getItem("angpao_user") || null;
 
-    const checkLoginStatus = () => {
+    window.checkLoginStatus = () => {
         if (currentUser) {
             document.getElementById("login-section").style.display = "none";
             document.getElementById("main-system-section").style.display = "block";
@@ -660,7 +656,7 @@
                 Swal.fire({ icon: 'success', title: 'เข้าสู่ระบบสำเร็จ', timer: 1000, showConfirmButton: false });
                 document.getElementById("username").value = "";
                 document.getElementById("password").value = "";
-                checkLoginStatus();
+                window.checkLoginStatus();
             } else {
                 Swal.fire('ล้มเหลว', 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง', 'error');
             }
@@ -672,19 +668,19 @@
     window.handleLogout = () => {
         currentUser = null;
         localStorage.removeItem("angpao_user");
-        checkLoginStatus();
+        window.checkLoginStatus();
     };
 
-    checkLoginStatus();
+    window.checkLoginStatus();
 
     window.toggleSummaryType = () => {
         const type = document.getElementById('summaryType').value;
         document.getElementById('summaryDate').classList.toggle('d-none', type !== 'daily');
         document.getElementById('summaryMonth').classList.toggle('d-none', type !== 'monthly');
-        renderSalesSummary();
+        window.renderSalesSummary();
     };
     
-    const renderBatchInputFields = () => {
+    window.renderBatchInputFields = () => {
         const container = document.getElementById('batch-add-stock-body');
         if (!container) return;
         
@@ -701,7 +697,7 @@
         container.innerHTML = html;
     };
 
-    setTimeout(renderBatchInputFields, 1000);
+    setTimeout(window.renderBatchInputFields, 1000);
 
     window.saveBatchProducts = async () => {
         const names = document.querySelectorAll('.batch-name');
@@ -755,44 +751,45 @@
     document.getElementById('summaryDate').value = d.toISOString().split('T')[0];
     document.getElementById('summaryMonth').value = d.toISOString().substring(0, 7);
 
-    const hideLoading = () => {
+    window.hideLoading = () => {
         const loader = document.getElementById('loadingSpinner');
         if(loader) loader.style.display = 'none';
     };
 
     onSnapshot(collection(db, "products"), (s) => { 
         posProducts = s.docs.map(d=>({id:d.id, ...d.data()})); 
-        renderPOSProducts(); 
-        renderManageProducts('pos'); 
-        hideLoading(); 
-    }, (err) => hideLoading());
+        window.renderPOSProducts(); 
+        window.renderManageProducts('pos'); 
+        window.hideLoading(); 
+    }, (err) => window.hideLoading());
 
     onSnapshot(collection(db, "stock_products"), (s) => { 
         stockProducts = s.docs.map(d=>({id:d.id, ...d.data()})); 
-        renderOrderProducts(); 
-        renderManageProducts('stock'); 
+        window.renderOrderProducts(); 
+        window.renderManageProducts('stock'); 
     });
 
     onSnapshot(query(collection(db, "bills"), orderBy("timestamp", "desc")), (s) => { 
         billsHistory = s.docs.map(d=>({id:d.id, ...d.data()})); 
-        renderHistory(); 
+        window.renderHistory(); 
     });
 
     onSnapshot(query(collection(db, "pos_sales"), orderBy("timestamp", "desc")), (s) => { 
         posSalesHistory = s.docs.map(d=>({id:d.id, ...d.data()})); 
-        renderSalesSummary(); 
+        window.renderSalesSummary(); 
     });
 
     onSnapshot(collection(db, "debtors"), (s) => { 
         debtors = s.docs.map(d=>({id:d.id, ...d.data()})); 
-        renderDebtors(); 
+        window.renderDebtors(); 
     });
 
     window.renderPOSProducts = () => {
         const grid = document.getElementById('posProductGrid');
-        grid.innerHTML = posProducts.map(p => `
+        const sortedPos = [...posProducts].sort((a, b) => a.name.localeCompare(b.name, 'th'));
+        grid.innerHTML = sortedPos.map(p => `
             <div class="col-6 col-md-4 col-xl-3 pos-card" data-name="${p.name.toLowerCase()}">
-                <div class="card pos-item-card" onclick="addToPOS('${p.id}')" style="cursor:pointer; margin-bottom: 0;">
+                <div class="card pos-item-card" onclick="window.addToPOS('${p.id}')" style="cursor:pointer; margin-bottom: 0;">
                     <div class="card-body text-center d-flex flex-column justify-content-center p-3">
                         <div class="fw-bold text-dark mb-1" style="font-size: 0.95rem; line-height: 1.2;">${p.name}</div>
                         <div class="pos-price-text mt-auto">฿${(p.price||0).toFixed(2)}</div>
@@ -810,7 +807,7 @@
         const p = posProducts.find(x => x.id === id);
         const item = posCart.find(x => x.id === id);
         if (item) item.qty++; else posCart.push({ ...p, qty: 1 });
-        renderPOSCart();
+        window.renderPOSCart();
     };
 
     window.addCustomPOSItem = async () => {
@@ -821,7 +818,7 @@
         });
         if (formValues && formValues[1] > 0) {
             posCart.push({ id: 'c-'+Date.now(), name: formValues[0], price: formValues[1], qty: 1 });
-            renderPOSCart();
+            window.renderPOSCart();
         }
     };
 
@@ -840,9 +837,9 @@
                 <td class="ps-3 py-3 border-bottom"><b class="text-dark">${i.name}</b></td>
                 <td class="border-bottom" style="width: 110px;">
                     <div class="input-group input-group-sm">
-                        <button class="btn btn-outline-secondary bg-light" onclick="updatePOSQty('${i.id}',-1)">-</button>
+                        <button class="btn btn-outline-secondary bg-light" onclick="window.updatePOSQty('${i.id}',-1)">-</button>
                         <input class="form-control text-center fw-bold bg-white" value="${i.qty}" readonly>
-                        <button class="btn btn-outline-secondary bg-light" onclick="updatePOSQty('${i.id}',1)">+</button>
+                        <button class="btn btn-outline-secondary bg-light" onclick="window.updatePOSQty('${i.id}',1)">+</button>
                     </div>
                 </td>
                 <td class="text-end pe-3 py-3 border-bottom fw-bold text-dark">฿${(i.price*i.qty).toFixed(2)}</td>
@@ -854,7 +851,7 @@
 
     window.updatePOSQty = (id, delta) => {
         const i = posCart.find(x => x.id === id);
-        if (i) { i.qty += delta; if(i.qty <= 0) posCart = posCart.filter(x => x.id !== id); renderPOSCart(); }
+        if (i) { i.qty += delta; if(i.qty <= 0) posCart = posCart.filter(x => x.id !== id); window.renderPOSCart(); }
     };
 
     window.checkoutPOS = async () => {
@@ -875,7 +872,7 @@
                 html: `<div class="text-muted mb-2">เงินทอน</div><h1 class="text-primary fw-bold" style="font-size: 3rem;">฿${(cash - total).toLocaleString(undefined, {minimumFractionDigits:2})}</h1>`,
                 icon: 'success'
             });
-            posCart = []; renderPOSCart();
+            posCart = []; window.renderPOSCart();
         } else if(cash < total) {
              Swal.fire('ยอดเงินไม่พอ', 'ระบุจำนวนเงินสดให้ถูกต้อง', 'warning');
         }
@@ -920,7 +917,7 @@
                 await addDoc(collection(db, "pos_sales"), { timestamp: ts, items: posCart, totalAmount: total, paymentMethod: 'credit', debtorId, debtorName: debtor.name, handledBy: currentUser });
                 
                 posCart = []; 
-                renderPOSCart();
+                window.renderPOSCart();
                 Swal.fire('ลงบัญชีเรียบร้อย', '', 'success');
             } catch (error) {
                 Swal.fire('เกิดข้อผิดพลาด', 'บันทึกข้อมูลไม่สำเร็จ', 'error');
@@ -1043,7 +1040,6 @@
         }
     };
 
-    // --- REVISED UI FOR DEBTORS TABLE & CARDS WITH SORTING/FILTERING ---
     window.renderDebtors = (filter = "") => {
         const tableBody = document.getElementById('debtorListTable');
         const cardsContainer = document.getElementById('debtorListCards');
@@ -1055,10 +1051,8 @@
         document.getElementById('totalAllDebtDisplay').innerText = totalDebt.toLocaleString(undefined, { minimumFractionDigits: 2 });
         document.getElementById('totalAllDepositDisplay').innerText = totalDeposit.toLocaleString(undefined, { minimumFractionDigits: 2 });
 
-        // กรองตามคำค้นหา
         let result = debtors.filter(d => d.name.toLowerCase().includes(filter.toLowerCase()));
         
-        // กรองและเรียงลำดับตามตัวเลือกใน Dropdown
         const sortFilterVal = document.getElementById('debtorSortFilter') ? document.getElementById('debtorSortFilter').value : 'debt_desc';
 
         if (sortFilterVal === 'only_debt') {
@@ -1077,7 +1071,6 @@
             result.sort((a, b) => a.name.localeCompare(b.name, 'th'));
         }
 
-        // 1. วาดตาราง (Desktop)
         tableBody.innerHTML = result.map(d => {
             const balance = d.balance || 0;
             const deposit = d.deposit || 0;
@@ -1095,10 +1088,10 @@
                     <td class="text-center text-muted small">${limit}</td>
                     <td class="text-center">
                         <div class="d-inline-flex gap-2 align-items-center">
-                            <button class="btn btn-outline-danger action-btn-pill fw-bold bg-white" title="บันทึกยอดเซ็นเพิ่ม" onclick="updateDebtManually('${d.id}', 'add')">
+                            <button class="btn btn-outline-danger action-btn-pill fw-bold bg-white" title="บันทึกยอดเซ็นเพิ่ม" onclick="window.updateDebtManually('${d.id}', 'add')">
                                 + เซ็นเพิ่ม
                             </button>
-                            <button class="btn btn-success action-btn-pill fw-bold" style="background-color: var(--success-color); border:none;" title="รับชำระหนี้/ฝากเงิน" onclick="updateDebtManually('${d.id}', 'pay')">
+                            <button class="btn btn-success action-btn-pill fw-bold" style="background-color: var(--success-color); border:none;" title="รับชำระหนี้/ฝากเงิน" onclick="window.updateDebtManually('${d.id}', 'pay')">
                                 จ่ายหนี้
                             </button>
                             
@@ -1107,10 +1100,10 @@
                                     <i class="bi bi-gear-fill"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm small border-0 mt-1">
-                                    <li><a class="dropdown-item py-2" href="#" onclick="viewDebtHistory('${d.id}')"><i class="bi bi-clock-history me-2 text-primary"></i>ประวัติบัญชี</a></li>
-                                    <li><a class="dropdown-item py-2" href="#" onclick="editDebtor('${d.id}')"><i class="bi bi-pencil-square me-2 text-warning"></i>แก้ไขข้อมูล</a></li>
+                                    <li><a class="dropdown-item py-2" href="#" onclick="window.viewDebtHistory('${d.id}')"><i class="bi bi-clock-history me-2 text-primary"></i>ประวัติบัญชี</a></li>
+                                    <li><a class="dropdown-item py-2" href="#" onclick="window.editDebtor('${d.id}')"><i class="bi bi-pencil-square me-2 text-warning"></i>แก้ไขข้อมูล</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item py-2 text-danger" href="#" onclick="deleteDebtor('${d.id}')"><i class="bi bi-trash me-2"></i>ลบรายชื่อ</a></li>
+                                    <li><a class="dropdown-item py-2 text-danger" href="#" onclick="window.deleteDebtor('${d.id}')"><i class="bi bi-trash me-2"></i>ลบรายชื่อ</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -1118,7 +1111,6 @@
                 </tr>`;
         }).join('');
 
-        // 2. วาดการ์ด (Mobile)
         cardsContainer.innerHTML = result.map(d => {
             const balance = d.balance || 0;
             const deposit = d.deposit || 0;
@@ -1142,10 +1134,10 @@
                                 <i class="bi bi-three-dots-vertical fs-5"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-sm small border-0">
-                                <li><a class="dropdown-item py-2" href="#" onclick="viewDebtHistory('${d.id}')"><i class="bi bi-clock-history text-primary me-2"></i>ประวัติบัญชี</a></li>
-                                <li><a class="dropdown-item py-2" href="#" onclick="editDebtor('${d.id}')"><i class="bi bi-pencil-square text-warning me-2"></i>แก้ไขข้อมูล</a></li>
+                                <li><a class="dropdown-item py-2" href="#" onclick="window.viewDebtHistory('${d.id}')"><i class="bi bi-clock-history text-primary me-2"></i>ประวัติบัญชี</a></li>
+                                <li><a class="dropdown-item py-2" href="#" onclick="window.editDebtor('${d.id}')"><i class="bi bi-pencil-square text-warning me-2"></i>แก้ไขข้อมูล</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item py-2 text-danger" href="#" onclick="deleteDebtor('${d.id}')"><i class="bi bi-trash me-2"></i>ลบรายชื่อ</a></li>
+                                <li><a class="dropdown-item py-2 text-danger" href="#" onclick="window.deleteDebtor('${d.id}')"><i class="bi bi-trash me-2"></i>ลบรายชื่อ</a></li>
                             </ul>
                         </div>
                     </div>
@@ -1166,10 +1158,10 @@
                     <div class="d-flex justify-content-between align-items-center p-3 border-top" style="border-color: #f1f5f9 !important; background-color: #f8fafc;">
                         <span class="text-muted small" style="font-size: 11px;">วงเงิน: <b class="text-dark">${limit}</b></span>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-outline-danger action-btn-pill fw-bold bg-white" onclick="updateDebtManually('${d.id}', 'add')">
+                            <button class="btn btn-outline-danger action-btn-pill fw-bold bg-white" onclick="window.updateDebtManually('${d.id}', 'add')">
                                 + เซ็นเพิ่ม
                             </button>
-                            <button class="btn btn-success action-btn-pill fw-bold shadow-sm" style="background-color: var(--success-color); border:none;" onclick="updateDebtManually('${d.id}', 'pay')">
+                            <button class="btn btn-success action-btn-pill fw-bold shadow-sm" style="background-color: var(--success-color); border:none;" onclick="window.updateDebtManually('${d.id}', 'pay')">
                                 จ่ายหนี้
                             </button>
                         </div>
@@ -1302,14 +1294,13 @@
         }
     };
 
-    window.searchDebtor = () => { renderDebtors(document.getElementById('debtorSearchInput').value); };
+    window.searchDebtor = () => { window.renderDebtors(document.getElementById('debtorSearchInput').value); };
 
-    // --- ส่วนบริหารสต็อก และจัดการหมวดหมู่ ---
+    // --- ส่วนบริการจัดการคลัง และออกบิล ---
     window.renderManageProducts = (type) => {
         const list = document.getElementById(type === 'pos' ? 'managePOSList' : 'manageStockList');
         let arr = type === 'pos' ? posProducts : stockProducts;
         
-        // 1. นำข้อมูลไปสร้าง Dropdown หมวดหมู่
         let catFilter = document.getElementById(type === 'pos' ? 'posCategoryFilter' : 'stockCategoryFilter');
         if (catFilter) {
             const uniqueCats = [...new Set(arr.map(item => item.category || 'ทั่วไป'))].sort();
@@ -1321,37 +1312,38 @@
             catFilter.innerHTML = catOptions;
         }
 
-        // 2. กรองข้อมูล (ตามช่องค้นหา และ Dropdown หมวดหมู่)
         let searchInput = document.getElementById(type === 'pos' ? 'managePosSearchInput' : 'stockSearchInput');
         let searchTerm = searchInput && searchInput.value ? searchInput.value.toLowerCase() : "";
         let selectedCat = catFilter && catFilter.value ? catFilter.value : "";
 
+        let displayArr = [...arr];
+
         if (searchTerm) {
-            arr = arr.filter(p => p.name.toLowerCase().includes(searchTerm));
+            displayArr = displayArr.filter(p => p.name.toLowerCase().includes(searchTerm));
         }
         if (selectedCat) {
-            arr = arr.filter(p => (p.category || 'ทั่วไป') === selectedCat);
+            displayArr = displayArr.filter(p => (p.category || 'ทั่วไป') === selectedCat);
         }
 
-        // 3. แสดงจำนวนรายการทั้งหมดที่กรองได้
-        let countEl = document.getElementById(type === 'pos' ? 'posTotalCount' : 'stockTotalCount');
-        if (countEl) countEl.innerText = arr.length;
+        displayArr.sort((a, b) => a.name.localeCompare(b.name, 'th'));
 
-        // 4. วาดตารางสินค้า
-        if (arr.length === 0) {
+        let countEl = document.getElementById(type === 'pos' ? 'posTotalCount' : 'stockTotalCount');
+        if (countEl) countEl.innerText = displayArr.length;
+
+        if (displayArr.length === 0) {
             list.innerHTML = `<tr><td colspan="4" class="text-center py-5 text-muted border-bottom">ไม่พบข้อมูลสินค้า</td></tr>`;
             return;
         }
 
-        list.innerHTML = arr.map(p => `
+        list.innerHTML = displayArr.map(p => `
             <tr>
                 <td class="ps-4 py-3 border-bottom"><b class="text-dark">${p.name}</b></td>
                 <td class="border-bottom"><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1 rounded-pill">${p.category || 'ทั่วไป'}</span></td>
                 <td class="text-center fw-bold border-bottom ${type==='pos' ? 'text-danger' : 'text-primary'}">${type==='pos' ? '฿'+(p.price||0).toFixed(2) : (p.defaultUnit || 'ชิ้น')}</td>
                 <td class="text-center pe-4 border-bottom">
                     <div class="btn-group shadow-sm">
-                        <button class="btn btn-sm btn-light border text-primary px-3" onclick="editProduct('${p.id}', '${type}')"><i class="bi bi-pencil-square"></i></button>
-                        <button class="btn btn-sm btn-light border text-danger px-3" onclick="deleteProduct('${p.id}','${type}')"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-sm btn-light border text-primary px-3" onclick="window.editProduct('${p.id}', '${type}')"><i class="bi bi-pencil-square"></i></button>
+                        <button class="btn btn-sm btn-light border text-danger px-3" onclick="window.deleteProduct('${p.id}','${type}')"><i class="bi bi-trash"></i></button>
                     </div>
                 </td>
             </tr>`).join('');
@@ -1441,7 +1433,10 @@
     // Helper function สำหรับหน้าจอออกบิล
     window.renderOrderProducts = () => {
         const list = document.getElementById('orderProductList');
-        const grouped = stockProducts.reduce((acc, p) => {
+        
+        const sortedStock = [...stockProducts].sort((a, b) => a.name.localeCompare(b.name, 'th'));
+        
+        const grouped = sortedStock.reduce((acc, p) => {
             const cat = p.category || 'ทั่วไป';
             if (!acc[cat]) acc[cat] = [];
             acc[cat].push(p);
@@ -1449,7 +1444,9 @@
         }, {});
 
         let html = '';
-        for (const category in grouped) {
+        const sortedCategories = Object.keys(grouped).sort();
+        
+        for (const category of sortedCategories) {
             html += `<tr><td colspan="4" class="py-2 ps-3 fw-bold text-primary bg-light border-bottom border-top">${category}</td></tr>`;
             grouped[category].forEach(p => {
                 const unit = p.defaultUnit || 'ชิ้น';
@@ -1462,12 +1459,111 @@
                             </select>
                         </td>
                         <td class="border-bottom"><input type="number" id="q-${p.id}" class="form-control form-control-sm text-center bg-light" value="1" style="width:55px"></td>
-                        <td class="text-center pe-3 border-bottom"><button class="btn btn-sm btn-primary rounded-pill px-3" onclick="addToOrderAndReset('${p.id}')"><i class="bi bi-plus-lg"></i></button></td>
+                        <td class="text-center pe-3 border-bottom"><button class="btn btn-sm btn-primary rounded-pill px-3" onclick="window.addToOrderAndReset('${p.id}')"><i class="bi bi-plus-lg"></i></button></td>
                     </tr>`;
             });
         }
         list.innerHTML = html;
     };
+
+    window.addToOrderAndReset = (id) => {
+        window.addToOrder(id);
+        const qtyInput = document.getElementById(`q-${id}`);
+        if (qtyInput) qtyInput.value = 1;
+    };
+
+    window.searchOrderProduct = () => {
+        const filter = document.getElementById('orderSearchInput').value.toLowerCase();
+        document.querySelectorAll('#orderProductList tr').forEach(r => {
+            r.style.display = r.innerText.toLowerCase().includes(filter) ? '' : 'none';
+        });
+    };
+
+    window.addToOrder = (id) => {
+        const p = stockProducts.find(x => x.id === id);
+        if(!p) return;
+        const qty = parseInt(document.getElementById(`q-${id}`).value) || 1;
+        const unit = document.getElementById(`u-${id}`).value;
+        orderItems.push({ ...p, qty, unit, orderItemId: Date.now() + Math.random() });
+        window.renderInvoice();
+    };
+
+    window.renderInvoice = () => {
+        const list = document.getElementById('invoiceList');
+        if (!orderItems.length) {
+            list.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted border-bottom">ยังไม่เลือกสินค้า</td></tr>';
+            document.getElementById('totalItemsSelected').innerText = 0;
+            return;
+        }
+        document.getElementById('totalItemsSelected').innerText = orderItems.length;
+        document.getElementById('orderIdDisplay').innerText = "#ORD-" + Date.now().toString().slice(-6);
+        list.innerHTML = orderItems.map((i, idx) => `
+            <tr><td class="text-center text-muted small border-bottom py-3">${idx + 1}</td>
+                <td class="fw-bold border-bottom">${i.name}</td><td class="text-center fw-bold text-primary border-bottom">${i.qty}</td><td class="text-center text-secondary border-bottom">${i.unit}</td>
+                <td class="exclude-print text-center border-bottom"><button class="btn btn-sm text-danger p-0 bg-transparent border-0" onclick="window.removeFromOrder(${i.orderItemId})"><i class="bi bi-x-circle-fill fs-5"></i></button></td>
+                <td class="only-print table-cell border-bottom"></td></tr>`).join('');
+    };
+    
+    window.clearInvoice = () => {
+        orderItems = [];
+        window.renderInvoice();
+    }
+
+    window.removeFromOrder = (tid) => { orderItems = orderItems.filter(x => x.orderItemId !== tid); window.renderInvoice(); };
+    window.saveBillToDB = async () => {
+        if (!orderItems.length) return;
+        await addDoc(collection(db, "bills"), { timestamp: Date.now(), dateString: new Date().toLocaleDateString('th-TH'), items: orderItems, handledBy: currentUser });
+        orderItems = []; window.renderInvoice();
+        Swal.fire('สำเร็จ', 'บันทึกบิลแล้ว', 'success');
+    };
+
+    window.viewBillDetail = (billId) => {
+        const bill = billsHistory.find(b => b.id === billId);
+        if (bill) {
+            orderItems = bill.items.map(item => ({ ...item, orderItemId: Date.now() + Math.random() }));
+            window.switchPage('page-order', document.querySelector('[onclick*="page-order"]'));
+            window.renderInvoice();
+        }
+    };
+
+    window.renderSalesSummary = () => {
+        const type = document.getElementById('summaryType').value;
+        const dateVal = document.getElementById('summaryDate').value;
+        const monthVal = document.getElementById('summaryMonth').value;
+        let filtered = posSalesHistory;
+        if (type === 'daily' && dateVal) filtered = posSalesHistory.filter(s => new Date(s.timestamp).toISOString().split('T')[0] === dateVal);
+        if (type === 'monthly' && monthVal) filtered = posSalesHistory.filter(s => new Date(s.timestamp).toISOString().substring(0, 7) === monthVal);
+
+        let total = 0, cash = 0, credit = 0;
+        document.getElementById('posHistoryList').innerHTML = filtered.map(s => {
+            total += s.totalAmount;
+            if(s.paymentMethod === 'credit') credit += s.totalAmount; else cash += s.totalAmount;
+            return `<tr><td class="ps-3 py-3 border-bottom">${new Date(s.timestamp).toLocaleTimeString('th-TH')}</td>
+                <td class="border-bottom"><span class="badge bg-${s.paymentMethod==='cash'?'success':'warning'} rounded-pill px-3">${s.paymentMethod==='cash'?'เงินสด':'เซ็น'}</span> <small class="text-muted ms-2 d-none d-sm-inline"><i class="bi bi-person me-1"></i>${s.handledBy || 'ไม่ระบุ'}</small></td>
+                <td class="fw-bold text-end pe-3 py-3 border-bottom text-dark">฿${s.totalAmount.toLocaleString()}</td></tr>`;
+        }).join('');
+        document.getElementById('todayTotal').innerText = `฿${total.toLocaleString()}`;
+        document.getElementById('todayCash').innerText = `฿${cash.toLocaleString()}`;
+        document.getElementById('todayCredit').innerText = `฿${credit.toLocaleString()}`;
+    };
+
+    window.renderHistory = () => {
+        const list = document.getElementById('historyList');
+        if (billsHistory.length === 0) { list.innerHTML = '<tr><td colspan="3" class="text-center py-5 text-muted border-bottom">ไม่พบข้อมูลบิล</td></tr>'; return; }
+        list.innerHTML = billsHistory.map(b => `
+            <tr><td class="ps-3 py-3 border-bottom"><b class="text-dark">${b.dateString}</b><br><small class="text-muted">ID: ${b.id.slice(0,5)} | ทำโดย: ${b.handledBy || 'ไม่ระบุ'}</small></td>
+                <td class="text-center border-bottom"><span class="badge bg-light text-dark border px-3 py-2 rounded-pill">${b.items.length} รายการ</span></td>
+                <td class="text-end pe-3 border-bottom">
+                    <button class="btn btn-sm btn-primary rounded-pill px-3 me-1" onclick="window.viewBillDetail('${b.id}')">ดูรายละเอียด</button>
+                    <button class="btn btn-sm btn-outline-danger rounded-circle bg-white" onclick="window.deleteBill('${b.id}')"><i class="bi bi-trash"></i></button>
+                </td></tr>`).join('');
+    };
+
+    window.deleteBill = async (id) => {
+        if((await Swal.fire({ title:'ลบประวัติบิล?', text: 'ข้อมูลนี้จะไม่สามารถกู้คืนได้', icon:'warning', showCancelButton:true, confirmButtonColor: '#ef4444' })).isConfirmed)
+            await deleteDoc(doc(db, "bills", id));
+    };
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
