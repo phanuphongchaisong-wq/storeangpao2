@@ -4,36 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบจัดการร้านอั่งเปา - Premium Edition</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
+    <!-- อัปเกรดจาก 0.18.5 ซึ่งอยู่ในข่าย CVE-2023-30533 (Prototype Pollution) -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <!-- ถอด html2pdf.js ออก เพราะโหลดราว 300KB แต่ไม่ถูกเรียกใช้ที่ใดเลย -->
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap');
-        
+
         :root {
-            --primary-color: #2563eb; 
+            --primary-color: #2563eb;
             --primary-hover: #1d4ed8;
             --active-bg: #3b82f6;
             --bg-color: #f4f7fb;
             --text-dark: #1e293b;
-            
+
             --success-color: #10b981;
             --danger-color: #ef4444;
             --warning-color: #f59e0b;
-            
+
             --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
             --hover-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.08), 0 8px 12px -4px rgba(0, 0, 0, 0.04);
             --border-radius: 16px;
         }
 
-        body { 
-            background-color: var(--bg-color); 
-            font-family: 'Prompt', sans-serif; 
-            color: var(--text-dark); 
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Prompt', sans-serif;
+            color: var(--text-dark);
         }
 
         /* --- Navbar --- */
@@ -42,37 +43,37 @@
             padding: 12px 0;
             box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
         }
-        .navbar-custom .navbar-brand { 
-            font-size: 1.3rem; 
-            font-weight: 700; 
-            color: #fff; 
+        .navbar-custom .navbar-brand {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
         }
-        .navbar-custom .nav-link { 
-            color: rgba(255, 255, 255, 0.8) !important; 
-            font-weight: 500; 
+        .navbar-custom .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-weight: 500;
             font-size: 0.95rem;
-            border-radius: 8px; 
-            transition: all 0.2s ease; 
+            border-radius: 8px;
+            transition: all 0.2s ease;
             margin: 0 2px;
             padding: 8px 16px !important;
         }
-        .navbar-custom .nav-link:hover { 
-            color: #fff !important; 
-            background-color: rgba(255, 255, 255, 0.1); 
+        .navbar-custom .nav-link:hover {
+            color: #fff !important;
+            background-color: rgba(255, 255, 255, 0.1);
         }
-        .navbar-custom .nav-link.active { 
-            color: #fff !important; 
+        .navbar-custom .nav-link.active {
+            color: #fff !important;
             background-color: rgba(255, 255, 255, 0.2);
             font-weight: 600;
         }
 
         /* --- Global Card Styling --- */
-        .card { 
-            border: 1px solid rgba(0,0,0,0.04); 
-            border-radius: var(--border-radius); 
-            box-shadow: var(--card-shadow); 
+        .card {
+            border: 1px solid rgba(0,0,0,0.04);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
             background-color: #ffffff;
-            margin-bottom: 20px; 
+            margin-bottom: 20px;
         }
         .form-control, .form-select {
             border-radius: 10px;
@@ -88,6 +89,14 @@
         }
         .btn { border-radius: 10px; transition: 0.2s; font-weight: 500; }
         .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* ตัวบ่งชี้โฟกัสสำหรับการใช้งานด้วยคีย์บอร์ด */
+        .btn:focus-visible, .form-control:focus-visible, .form-select:focus-visible,
+        .nav-link:focus-visible, .dropdown-item:focus-visible {
+            outline: 3px solid #1d4ed8;
+            outline-offset: 2px;
+        }
 
         .page-section { display: none; animation: fadeIn 0.3s ease-in-out; }
         .page-section.active { display: block; }
@@ -129,22 +138,31 @@
         .summary-red { background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); }
         .summary-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
         .summary-card h1 { font-weight: 800; font-size: 2.5rem; margin-top: 8px; letter-spacing: -0.5px;}
-        
+
         .debtor-table-view th { color: #64748b; font-weight: 600; padding: 16px 12px; border-bottom: 2px solid #e2e8f0; }
         .debtor-table-view td { padding: 14px 12px; border-bottom: 1px solid #f1f5f9; }
-        .action-btn-pill { border-radius: 50px; font-size: 0.85rem; padding: 6px 16px; }
+        .action-btn-pill { border-radius: 50px; font-size: 0.85rem; padding: 10px 16px; }
+
+        /* ป้ายสถานะบัญชี ไม่ให้สื่อความหมายด้วยสีเพียงอย่างเดียว */
+        .status-chip {
+            display: inline-block; font-size: 11px; font-weight: 600;
+            padding: 2px 10px; border-radius: 50px; border: 1px solid;
+        }
+        .chip-debt    { color: #b91c1c; border-color: #fecaca; background: #fef2f2; }
+        .chip-deposit { color: #047857; border-color: #a7f3d0; background: #ecfdf5; }
+        .chip-clear   { color: #475569; border-color: #e2e8f0; background: #f8fafc; }
 
         /* --- Mobile Responsive Enhancements --- */
         @media (max-width: 768px) {
             .btn { padding: 10px 15px !important; }
             .form-control-sm, .form-select-sm { height: 48px !important; font-size: 16px !important; }
             .d-mobile-none { display: none !important; }
-            
+
             .debtor-table-view { display: none !important; }
             .debtor-card-view { display: block !important; }
             .summary-card h1 { font-size: 2.2rem; }
             .summary-card { padding: 1.5rem 1.2rem; }
-            
+
             .navbar-nav {
                 flex-direction: row;
                 overflow-x: auto;
@@ -168,17 +186,20 @@
             overflow: hidden;
             background-color: #fff;
         }
-        .card-status-debt { border-left: 6px solid var(--danger-color) !important; }      
-        .card-status-deposit { border-left: 6px solid var(--success-color) !important; }  
-        .card-status-empty { border-left: 6px solid #cbd5e1 !important; }    
+        .card-status-debt { border-left: 6px solid var(--danger-color) !important; }
+        .card-status-deposit { border-left: 6px solid var(--success-color) !important; }
+        .card-status-empty { border-left: 6px solid #cbd5e1 !important; }
 
         .table-compact { width: 100%; border-collapse: collapse; }
         .table-compact thead { background-color: #f8fafc; border-bottom: 2px solid #e2e8f0; }
         .table-compact td, .table-compact th { padding: 12px; border-bottom: 1px solid #f1f5f9; }
-        
+
         .pos-grid-container { max-height: calc(100vh - 220px); overflow-y: auto; padding: 10px 5px; overflow-x: hidden; }
-        .cart-container { max-height: calc(100vh - 380px); overflow-y: auto; }
+        .cart-container { max-height: calc(100vh - 380px); min-height: 160px; overflow-y: auto; }
         .login-container { max-width: 400px; margin: 80px auto; }
+
+        /* ช่องที่เว้นไว้กรอกด้วยมือตอนพิมพ์ ซ่อนบนหน้าจอเพื่อไม่ให้ดูเหมือนระบบคำนวณไม่ได้ */
+        .only-print { display: none; }
 
         @media print {
             @page { size: A4; margin: 0.5cm; }
@@ -194,50 +215,63 @@
 </head>
 <body>
 
+<!-- รายการหมวดหมู่สำหรับช่วยเติมอัตโนมัติ เดิมอ้างถึง list="categoryList" แต่ไม่มี element นี้อยู่จริง -->
+<datalist id="categoryList"></datalist>
+
 <div id="login-section" class="container login-container">
     <div class="card p-4 shadow-sm border-0">
         <div class="text-center mb-4">
-            <div class="display-5 text-primary mb-2"><i class="bi bi-wallet2"></i></div>
-            <h3 class="fw-bold m-0" style="color: var(--primary-color);">ร้านอั่งเปา</h3>
+            <div class="display-5 text-primary mb-2" aria-hidden="true"><i class="bi bi-wallet2"></i></div>
+            <h1 class="fw-bold m-0 h3" style="color: var(--primary-color);">ร้านอั่งเปา</h1>
             <small class="text-muted">ระบบจัดการร้านค้าและบัญชีลูกหนี้</small>
         </div>
         <form id="loginForm">
             <div class="mb-3">
-                <label class="form-label small fw-bold text-muted">ชื่อผู้ใช้งาน</label>
-                <input type="text" id="username" class="form-control" required placeholder="ระบุชื่อผู้ใช้">
+                <label for="username" class="form-label small fw-bold text-muted">ชื่อผู้ใช้งาน</label>
+                <input type="text" id="username" name="username" class="form-control" required
+                       autocomplete="username" placeholder="ระบุชื่อผู้ใช้">
             </div>
             <div class="mb-4">
-                <label class="form-label small fw-bold text-muted">รหัสผ่าน</label>
-                <input type="password" id="password" class="form-control" required placeholder="ระบุรหัสผ่าน">
+                <label for="password" class="form-label small fw-bold text-muted">รหัสผ่าน</label>
+                <input type="password" id="password" name="password" class="form-control" required
+                       autocomplete="current-password" placeholder="ระบุรหัสผ่าน">
             </div>
-            <button type="submit" class="btn btn-primary w-100 fw-bold py-2 shadow-sm" style="background-color: var(--primary-color);">เข้าสู่ระบบ</button>
+            <button type="submit" id="loginBtn" class="btn btn-primary w-100 fw-bold py-2 shadow-sm" style="background-color: var(--primary-color);">เข้าสู่ระบบ</button>
         </form>
+        <p class="text-muted small text-center mt-3 mb-0">
+            บัญชีผู้ใช้จัดการผ่าน Firebase Authentication<br>หากเข้าใช้งานไม่ได้ กรุณาติดต่อผู้ดูแลระบบ
+        </p>
     </div>
 </div>
 
 <div id="main-system-section" style="display: none;">
     <nav class="navbar navbar-expand navbar-custom mb-4 sticky-top">
         <div class="container-fluid px-2 px-md-4">
-            <a class="navbar-brand d-none d-md-block" href="#"><i class="bi bi-wallet2 me-2"></i>ร้านอั่งเปา</a>
-            <div class="navbar-nav mx-auto px-2 px-md-0">
-                <a class="nav-link active" href="#" onclick="window.switchPage('page-pos', this)"><i class="bi bi-shop me-1 d-none d-sm-inline"></i> POS</a>
-                <a class="nav-link" href="#" onclick="window.switchPage('page-debtors', this)"><i class="bi bi-person-lines-fill me-1 d-none d-sm-inline"></i> ลูกหนี้</a>
-                <a class="nav-link" href="#" onclick="window.switchPage('page-history', this)"><i class="bi bi-graph-up-arrow me-1 d-none d-sm-inline"></i> รายงาน</a>
-                <a class="nav-link" href="#" onclick="window.switchPage('page-order', this)"><i class="bi bi-receipt-cutoff me-1 d-none d-sm-inline"></i> บิล</a>
-                <a class="nav-link" href="#" onclick="window.switchPage('page-manage-pos', this)"><i class="bi bi-boxes me-1 d-none d-sm-inline"></i> คลัง POS</a>
-                <a class="nav-link" href="#" onclick="window.switchPage('page-manage-stock', this)"><i class="bi bi-truck me-1 d-none d-sm-inline"></i> คลังบิล</a>
+            <a class="navbar-brand d-none d-md-block" href="#"><i class="bi bi-wallet2 me-2" aria-hidden="true"></i>ร้านอั่งเปา</a>
+            <div class="navbar-nav mx-auto px-2 px-md-0" id="mainNav">
+                <a class="nav-link active" href="#" aria-current="page" onclick="window.switchPage('page-pos', this); return false;"><i class="bi bi-shop me-1 d-none d-sm-inline" aria-hidden="true"></i> POS</a>
+                <a class="nav-link" href="#" onclick="window.switchPage('page-debtors', this); return false;"><i class="bi bi-person-lines-fill me-1 d-none d-sm-inline" aria-hidden="true"></i> ลูกหนี้</a>
+                <a class="nav-link" href="#" onclick="window.switchPage('page-history', this); return false;"><i class="bi bi-graph-up-arrow me-1 d-none d-sm-inline" aria-hidden="true"></i> รายงาน</a>
+                <a class="nav-link" href="#" onclick="window.switchPage('page-order', this); return false;"><i class="bi bi-receipt-cutoff me-1 d-none d-sm-inline" aria-hidden="true"></i> บิล</a>
+                <a class="nav-link" href="#" onclick="window.switchPage('page-manage-pos', this); return false;"><i class="bi bi-boxes me-1 d-none d-sm-inline" aria-hidden="true"></i> คลัง POS</a>
+                <a class="nav-link" href="#" onclick="window.switchPage('page-manage-stock', this); return false;"><i class="bi bi-truck me-1 d-none d-sm-inline" aria-hidden="true"></i> คลังบิล</a>
             </div>
             <div class="d-flex align-items-center text-white small">
-                <span class="d-none d-xl-inline"><i class="bi bi-person-circle me-1"></i><b id="currentUserDisplay">-</b></span>
-                <button class="btn btn-sm btn-danger px-2 py-1 ms-2" onclick="window.handleLogout()"><i class="bi bi-box-arrow-right"></i></button>
+                <span class="d-none d-xl-inline"><i class="bi bi-person-circle me-1" aria-hidden="true"></i><b id="currentUserDisplay">-</b><span id="currentRoleBadge" class="badge bg-light text-dark ms-2"></span></span>
+                <button class="btn btn-sm btn-danger px-2 py-1 ms-2" onclick="window.handleLogout()" aria-label="ออกจากระบบ" title="ออกจากระบบ"><i class="bi bi-box-arrow-right" aria-hidden="true"></i></button>
             </div>
         </div>
     </nav>
 
     <div class="container-fluid px-3 px-md-4 pb-5">
         <div id="loadingSpinner" class="text-center my-5">
-            <div class="spinner-border text-primary" role="status"></div>
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">กำลังโหลด</span></div>
             <h5 class="mt-3 text-muted">กำลังโหลดข้อมูล...</h5>
+        </div>
+
+        <div id="dataError" class="alert alert-danger d-none" role="alert">
+            <b>โหลดข้อมูลไม่สำเร็จ</b>
+            <div id="dataErrorDetail" class="small mt-1"></div>
         </div>
 
         <!-- หน้าระบบ POS -->
@@ -246,8 +280,9 @@
                 <div class="col-lg-7 col-xl-8">
                     <div class="card h-100 bg-transparent shadow-none border-0">
                         <div class="bg-white p-3 rounded-4 shadow-sm mb-3 border">
+                            <label for="posSearchInput" class="visually-hidden">ค้นหาสินค้า</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                                <span class="input-group-text bg-transparent border-end-0 text-muted" aria-hidden="true"><i class="bi bi-search"></i></span>
                                 <input type="text" id="posSearchInput" class="form-control border-start-0 ps-0 bg-transparent" placeholder="ค้นหาสินค้า..." onkeyup="window.searchPOSProduct()">
                                 <button class="btn" style="background-color: #ffc107; color: #000; font-weight: 600;" onclick="window.addCustomPOSItem()">กำหนดราคา</button>
                             </div>
@@ -257,15 +292,16 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-lg-5 col-xl-4">
                     <div class="card h-100 shadow-sm border-0" style="border-top: 5px solid var(--primary-color) !important;">
                         <div class="card-header bg-white d-flex justify-content-between align-items-center p-3 border-bottom-0 pt-4">
-                            <h5 class="mb-0 fw-bold">รายการขาย</h5>
+                            <h2 class="mb-0 fw-bold h5">รายการขาย</h2>
                             <span class="badge bg-primary rounded-pill px-3 py-2 fs-6" id="posItemCount">0</span>
                         </div>
                         <div class="card-body p-0 cart-container bg-white border-top">
                             <table class="table table-hover align-middle mb-0">
+                                <caption class="visually-hidden">สินค้าในตะกร้า</caption>
                                 <tbody id="posCartList">
                                     <tr><td class="text-center text-muted py-5">ไม่มีสินค้าในตะกร้า</td></tr>
                                 </tbody>
@@ -277,8 +313,8 @@
                                 <span style="color: var(--danger-color); font-weight: 800; font-size: 2.2rem; line-height: 1;" id="posTotal">฿0.00</span>
                             </div>
                             <div class="d-grid gap-2">
-                                <button class="btn text-white fw-bold py-3 shadow-sm fs-5" style="background-color: #10b981;" onclick="window.checkoutPOS()">จ่ายเงินสด</button>
-                                <button class="btn fw-bold py-3 shadow-sm fs-5 text-dark" style="background-color: #f59e0b;" onclick="window.checkoutCreditPOS()">ลงบัญชีเซ็น</button>
+                                <button id="btnCheckoutCash" class="btn text-white fw-bold py-3 shadow-sm fs-5" style="background-color: #10b981;" onclick="window.checkoutPOS()">จ่ายเงินสด</button>
+                                <button id="btnCheckoutCredit" class="btn fw-bold py-3 shadow-sm fs-5 text-dark" style="background-color: #f59e0b;" onclick="window.checkoutCreditPOS()">ลงบัญชีเซ็น</button>
                             </div>
                         </div>
                     </div>
@@ -289,24 +325,24 @@
         <!-- หน้าลูกหนี้ -->
         <div id="page-debtors" class="page-section">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-                <h4 class="fw-bold m-0 text-dark"><i class="bi bi-journal-bookmark-fill me-2 text-primary"></i>บัญชีลูกหนี้และเงินฝาก</h4>
+                <h2 class="fw-bold m-0 text-dark h4"><i class="bi bi-journal-bookmark-fill me-2 text-primary" aria-hidden="true"></i>บัญชีลูกหนี้และเงินฝาก</h2>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-success fw-bold shadow-sm w-100 w-md-auto" onclick="window.exportDebtorsToExcel()"><i class="bi bi-file-earmark-excel me-1"></i>ส่งออก</button>
-                    <button class="btn btn-primary fw-bold shadow-sm w-100 w-md-auto" onclick="window.addNewDebtor()"><i class="bi bi-person-plus-fill me-1"></i>เพิ่มลูกค้า</button>
+                    <button class="btn btn-success fw-bold shadow-sm w-100 w-md-auto" onclick="window.exportDebtorsToExcel()"><i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>ส่งออก</button>
+                    <button id="btnAddDebtor" class="btn btn-primary fw-bold shadow-sm w-100 w-md-auto" onclick="window.addNewDebtor()"><i class="bi bi-person-plus-fill me-1" aria-hidden="true"></i>เพิ่มลูกค้า</button>
                 </div>
             </div>
-            
+
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <div class="summary-card summary-red h-100">
                         <small class="opacity-75 fw-bold">ยอดค้างรวมทั้งหมด</small>
-                        <h1>฿<span id="totalAllDebtDisplay">0.00</span></h1>
+                        <h2 class="h1" style="font-weight:800;">฿<span id="totalAllDebtDisplay">0.00</span></h2>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="summary-card summary-green h-100">
                         <small class="opacity-75 fw-bold">เงินสแกนเหลือรวม (ยอดเหลือ)</small>
-                        <h1>฿<span id="totalAllDepositDisplay">0.00</span></h1>
+                        <h2 class="h1" style="font-weight:800;">฿<span id="totalAllDepositDisplay">0.00</span></h2>
                     </div>
                 </div>
             </div>
@@ -315,14 +351,16 @@
                 <div class="card-header bg-white p-3 border-bottom">
                     <div class="row g-2 align-items-center">
                         <div class="col-12 col-md-7">
+                            <label for="debtorSearchInput" class="visually-hidden">ค้นหาชื่อลูกค้า</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                                <span class="input-group-text bg-light border-end-0 text-muted" aria-hidden="true"><i class="bi bi-search"></i></span>
                                 <input type="text" id="debtorSearchInput" class="form-control border-start-0 ps-0 bg-light" placeholder="ค้นหาชื่อลูกค้า..." onkeyup="window.searchDebtor()">
                             </div>
                         </div>
                         <div class="col-12 col-md-5">
+                            <label for="debtorSortFilter" class="visually-hidden">จัดเรียงรายชื่อลูกหนี้</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted small"><i class="bi bi-sort-down me-1"></i>จัดเรียง:</span>
+                                <span class="input-group-text bg-light border-end-0 text-muted small"><i class="bi bi-sort-down me-1" aria-hidden="true"></i>จัดเรียง:</span>
                                 <select id="debtorSortFilter" class="form-select border-start-0 bg-light fw-bold text-secondary small" onchange="window.searchDebtor()">
                                     <option value="debt_desc">ยอดหนี้ค้าง (มาก ➔ น้อย)</option>
                                     <option value="debt_asc">ยอดหนี้ค้าง (น้อย ➔ มาก)</option>
@@ -330,21 +368,23 @@
                                     <option value="name_asc">ชื่อลูกค้า (ก ➔ ฮ)</option>
                                     <option value="only_debt">เฉพาะมียอดหนี้ค้าง</option>
                                     <option value="only_deposit">เฉพาะมีเงินสแกนเหลือ</option>
+                                    <option value="archived">เฉพาะบัญชีที่ปิดแล้ว</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="table-responsive debtor-table-view">
                     <table class="table align-middle mb-0 text-nowrap">
+                        <caption class="visually-hidden">รายชื่อลูกหนี้และยอดคงเหลือ</caption>
                         <thead class="bg-light">
                             <tr>
-                                <th class="ps-4" style="width: 25%;">ชื่อลูกค้า</th>
-                                <th class="text-center" style="width: 20%;">ยอดค้างชำระ</th>
-                                <th class="text-center" style="width: 20%;">เงินสแกนเหลือ</th>
-                                <th class="text-center" style="width: 15%;">วงเงิน</th>
-                                <th class="text-center" style="width: 20%;">จัดการข้อมูล</th>
+                                <th scope="col" class="ps-4" style="width: 25%;">ชื่อลูกค้า</th>
+                                <th scope="col" class="text-center" style="width: 20%;">ยอดค้างชำระ</th>
+                                <th scope="col" class="text-center" style="width: 20%;">เงินสแกนเหลือ</th>
+                                <th scope="col" class="text-center" style="width: 15%;">วงเงิน</th>
+                                <th scope="col" class="text-center" style="width: 20%;">จัดการข้อมูล</th>
                             </tr>
                         </thead>
                         <tbody id="debtorListTable"></tbody>
@@ -358,35 +398,42 @@
         <!-- หน้ารายงาน -->
         <div id="page-history" class="page-section">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-                <h4 class="fw-bold m-0"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>รายงานการขาย</h4>
+                <h2 class="fw-bold m-0 h4"><i class="bi bi-bar-chart-fill me-2 text-primary" aria-hidden="true"></i>รายงานการขาย</h2>
                 <div class="d-flex gap-2">
+                    <label for="summaryType" class="visually-hidden">ประเภทรายงาน</label>
                     <select id="summaryType" class="form-select w-auto bg-white shadow-sm" onchange="window.toggleSummaryType()">
                         <option value="daily">รายวัน</option>
                         <option value="monthly">รายเดือน</option>
                     </select>
+                    <label for="summaryDate" class="visually-hidden">เลือกวันที่</label>
                     <input type="date" id="summaryDate" class="form-control w-auto bg-white shadow-sm" onchange="window.renderSalesSummary()">
+                    <label for="summaryMonth" class="visually-hidden">เลือกเดือน</label>
                     <input type="month" id="summaryMonth" class="form-control w-auto bg-white shadow-sm d-none" onchange="window.renderSalesSummary()">
                 </div>
             </div>
             <div class="row g-3 mb-4 text-white">
-                <div class="col-4 col-md-4"><div class="card p-3 p-md-4 shadow-sm border-0 h-100 text-center text-md-start" style="background-color: var(--primary-color);"><h6 class="opacity-75 fw-bold mb-1" style="font-size:0.8rem;">ยอดขายรวม</h6><h3 class="fw-bold m-0" id="todayTotal">฿0</h3></div></div>
-                <div class="col-4 col-md-4"><div class="card p-3 p-md-4 shadow-sm border-0 h-100 text-center text-md-start" style="background-color: var(--success-color);"><h6 class="opacity-75 fw-bold mb-1" style="font-size:0.8rem;">เงินสด</h6><h3 class="fw-bold m-0" id="todayCash">฿0</h3></div></div>
-                <div class="col-4 col-md-4"><div class="card bg-warning text-dark p-3 p-md-4 shadow-sm border-0 h-100 text-center text-md-start"><h6 class="opacity-75 fw-bold mb-1" style="font-size:0.8rem;">เซ็นค้าง</h6><h3 class="fw-bold m-0" id="todayCredit">฿0</h3></div></div>
+                <div class="col-4 col-md-4"><div class="card p-3 p-md-4 shadow-sm border-0 h-100 text-center text-md-start" style="background-color: var(--primary-color);"><h3 class="opacity-75 fw-bold mb-1 h6" style="font-size:0.8rem;">ยอดขายรวม</h3><p class="fw-bold m-0 h3" id="todayTotal">฿0</p></div></div>
+                <div class="col-4 col-md-4"><div class="card p-3 p-md-4 shadow-sm border-0 h-100 text-center text-md-start" style="background-color: var(--success-color);"><h3 class="opacity-75 fw-bold mb-1 h6" style="font-size:0.8rem;">เงินสด</h3><p class="fw-bold m-0 h3" id="todayCash">฿0</p></div></div>
+                <div class="col-4 col-md-4"><div class="card bg-warning text-dark p-3 p-md-4 shadow-sm border-0 h-100 text-center text-md-start"><h3 class="opacity-75 fw-bold mb-1 h6" style="font-size:0.8rem;">เซ็นเป็นหนี้</h3><p class="fw-bold m-0 h3" id="todayCredit">฿0</p></div></div>
             </div>
+            <p class="text-muted small mb-3">
+                ยอดขายจัดกลุ่มตามวันที่ของเขตเวลาไทย (Asia/Bangkok) ช่อง "เซ็นเป็นหนี้" นับเฉพาะส่วนที่กลายเป็นยอดหนี้จริง ส่วนที่ตัดจากเงินสแกนแสดงแยกในตารางด้านล่าง
+            </p>
             <div class="card shadow-sm">
                 <div class="card-header bg-white pt-3 pb-0 border-bottom">
                     <ul class="nav nav-tabs border-0" role="tablist">
-                        <li class="nav-item"><button class="nav-link active fw-bold text-dark border-0 border-bottom border-primary border-3 bg-transparent pb-3" data-bs-toggle="tab" data-bs-target="#tab-pos" type="button">ขายหน้าร้าน (POS)</button></li>
-                        <li class="nav-item"><button class="nav-link fw-bold text-muted border-0 bg-transparent pb-3" data-bs-toggle="tab" data-bs-target="#tab-stock" type="button" onclick="this.classList.remove('text-muted'); this.classList.add('text-dark','border-bottom','border-primary','border-3'); this.parentElement.previousElementSibling.firstElementChild.classList.remove('text-dark','border-bottom','border-primary','border-3'); this.parentElement.previousElementSibling.firstElementChild.classList.add('text-muted');">ประวัติเปิดบิลใหญ่</button></li>
+                        <li class="nav-item" role="presentation"><button class="nav-link active fw-bold text-dark border-0 border-bottom border-primary border-3 bg-transparent pb-3" data-bs-toggle="tab" data-bs-target="#tab-pos" type="button" role="tab">ขายหน้าร้าน (POS)</button></li>
+                        <li class="nav-item" role="presentation"><button class="nav-link fw-bold text-muted border-0 bg-transparent pb-3" data-bs-toggle="tab" data-bs-target="#tab-stock" type="button" role="tab">ประวัติเปิดบิลใหญ่</button></li>
                     </ul>
                 </div>
                 <div class="card-body p-0">
                     <div class="tab-content">
-                        <div class="tab-pane fade show active" id="tab-pos"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><tbody id="posHistoryList"></tbody></table></div></div>
-                        <div class="tab-pane fade" id="tab-stock">
+                        <div class="tab-pane fade show active" id="tab-pos" role="tabpanel"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><caption class="visually-hidden">รายการขายหน้าร้าน</caption><tbody id="posHistoryList"></tbody></table></div></div>
+                        <div class="tab-pane fade" id="tab-stock" role="tabpanel">
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle mb-0">
-                                    <thead class="table-light"><tr><th class="ps-3 py-3">วันที่/รหัส</th><th class="text-center py-3">จำนวน</th><th class="text-end pe-3 py-3">จัดการ</th></tr></thead>
+                                    <caption class="visually-hidden">ประวัติบิลใหญ่</caption>
+                                    <thead class="table-light"><tr><th scope="col" class="ps-3 py-3">วันที่/รหัส</th><th scope="col" class="text-center py-3">จำนวน</th><th scope="col" class="text-end pe-3 py-3">จัดการ</th></tr></thead>
                                     <tbody id="historyList"></tbody>
                                 </table>
                             </div>
@@ -398,7 +445,7 @@
 
         <!-- หน้าออกบิล -->
         <div id="page-order" class="page-section">
-            <h4 class="fw-bold mb-4 d-md-none"><i class="bi bi-receipt me-2 text-primary"></i>บิล</h4>
+            <h2 class="fw-bold mb-4 d-md-none h4"><i class="bi bi-receipt me-2 text-primary" aria-hidden="true"></i>บิล</h2>
             <div class="row g-3">
                 <div class="col-lg-4 exclude-print">
                     <div class="card h-100 shadow-sm border-0">
@@ -407,13 +454,15 @@
                             <span class="badge bg-white text-primary rounded-pill px-2" id="totalItemsSelected">0</span>
                         </div>
                         <div class="p-2 bg-light border-bottom">
+                            <label for="orderSearchInput" class="visually-hidden">ค้นหาสินค้าในคลังบิล</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                                <span class="input-group-text bg-white border-end-0" aria-hidden="true"><i class="bi bi-search text-muted"></i></span>
                                 <input type="text" id="orderSearchInput" class="form-control border-start-0 ps-0 bg-white" placeholder="ค้นหาสินค้า..." onkeyup="window.searchOrderProduct()">
                             </div>
                         </div>
                         <div class="card-body p-0" style="max-height: 60vh; overflow-y: auto;">
                             <table class="table table-hover align-middle mb-0 small">
+                                <caption class="visually-hidden">สินค้าในคลังบิล</caption>
                                 <tbody id="orderProductList"></tbody>
                             </table>
                         </div>
@@ -421,10 +470,14 @@
                 </div>
 
                 <div class="col-lg-8">
+                    <div id="billEditingNotice" class="alert alert-warning d-none exclude-print" role="alert">
+                        <b>กำลังดูบิลเดิม</b> <span id="billEditingId" class="small"></span>
+                        <div class="small mt-1">การกดบันทึกจะอัปเดตบิลใบนี้ ไม่ได้สร้างใบใหม่ หากต้องการสร้างใบใหม่ให้กด "ล้าง" ก่อน</div>
+                    </div>
                     <div class="d-flex justify-content-end gap-2 mb-3 exclude-print">
-                        <button class="btn btn-light border fw-bold text-danger" onclick="window.clearInvoice()"><i class="bi bi-eraser me-1 d-none d-sm-inline"></i>ล้าง</button>
-                        <button class="btn btn-primary fw-bold" style="background-color: var(--primary-color);" onclick="window.saveBillToDB()"><i class="bi bi-cloud-arrow-up me-1 d-none d-sm-inline"></i>บันทึกบิล</button>
-                        <button class="btn btn-success fw-bold" onclick="window.print()"><i class="bi bi-printer me-1 d-none d-sm-inline"></i>พิมพ์</button>
+                        <button class="btn btn-light border fw-bold text-danger" onclick="window.clearInvoice()"><i class="bi bi-eraser me-1 d-none d-sm-inline" aria-hidden="true"></i>ล้าง</button>
+                        <button id="btnSaveBill" class="btn btn-primary fw-bold" style="background-color: var(--primary-color);" onclick="window.saveBillToDB()"><i class="bi bi-cloud-arrow-up me-1 d-none d-sm-inline" aria-hidden="true"></i><span id="btnSaveBillText">บันทึกบิล</span></button>
+                        <button class="btn btn-success fw-bold" onclick="window.print()"><i class="bi bi-printer me-1 d-none d-sm-inline" aria-hidden="true"></i>พิมพ์</button>
                     </div>
 
                     <div id="invoice-area" class="invoice-box shadow-sm bg-white p-3 p-md-5">
@@ -441,14 +494,15 @@
                         </div>
                         <div class="table-responsive">
                             <table class="table-compact align-middle" style="min-width: 500px;">
+                                <caption class="visually-hidden">รายการสินค้าในบิล</caption>
                                 <thead>
                                     <tr class="text-center bg-light">
-                                        <th style="width: 40px; padding: 12px 8px;">#</th>
-                                        <th class="text-start">รายการสินค้า</th>
-                                        <th style="width: 80px">จำนวน</th>
-                                        <th style="width: 80px">หน่วย</th>
-                                        <th style="width: 40px" class="exclude-print">ลบ</th>
-                                        <th style="width: 80px">ราคา</th>
+                                        <th scope="col" style="width: 40px; padding: 12px 8px;">#</th>
+                                        <th scope="col" class="text-start">รายการสินค้า</th>
+                                        <th scope="col" style="width: 80px">จำนวน</th>
+                                        <th scope="col" style="width: 80px">หน่วย</th>
+                                        <th scope="col" style="width: 40px" class="exclude-print">ลบ</th>
+                                        <th scope="col" style="width: 80px" class="only-print table-cell">ราคา</th>
                                     </tr>
                                 </thead>
                                 <tbody id="invoiceList"></tbody>
@@ -461,20 +515,22 @@
 
         <!-- หน้าจัดการคลัง POS -->
         <div id="page-manage-pos" class="page-section">
-            <h4 class="fw-bold mb-4"><i class="bi bi-box-seam me-2 text-primary"></i>จัดการสินค้าหน้าร้าน (POS)</h4>
-            
+            <h2 class="fw-bold mb-4 h4"><i class="bi bi-box-seam me-2 text-primary" aria-hidden="true"></i>จัดการสินค้าหน้าร้าน (POS)</h2>
+
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white p-3 border-bottom">
                     <div class="row g-2 align-items-center">
                         <div class="col-12 col-md-5">
+                            <label for="managePosSearchInput" class="visually-hidden">ค้นหาสินค้าหน้าร้าน</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                                <span class="input-group-text bg-light border-end-0 text-muted" aria-hidden="true"><i class="bi bi-search"></i></span>
                                 <input type="text" id="managePosSearchInput" class="form-control border-start-0 ps-0 bg-light" placeholder="ค้นหาชื่อสินค้า..." onkeyup="window.renderManageProducts('pos')">
                             </div>
                         </div>
                         <div class="col-12 col-md-4">
+                            <label for="posCategoryFilter" class="visually-hidden">กรองตามหมวดหมู่</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted small"><i class="bi bi-filter"></i> หมวดหมู่:</span>
+                                <span class="input-group-text bg-light border-end-0 text-muted small"><i class="bi bi-filter" aria-hidden="true"></i> หมวดหมู่:</span>
                                 <select id="posCategoryFilter" class="form-select border-start-0 bg-light fw-bold text-secondary small" onchange="window.renderManageProducts('pos')">
                                     <option value="">ทั้งหมด</option>
                                 </select>
@@ -485,35 +541,39 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="p-3 border-bottom bg-light">
-                    <h6 class="fw-bold text-muted mb-3 small"><i class="bi bi-plus-circle me-1"></i>เพิ่มสินค้าใหม่</h6>
-                    <form onsubmit="event.preventDefault(); window.saveSingleProduct('pos');">
+                    <h3 class="fw-bold text-muted mb-3 small h6"><i class="bi bi-plus-circle me-1" aria-hidden="true"></i>เพิ่มสินค้าใหม่</h3>
+                    <form id="posAddForm" onsubmit="event.preventDefault(); window.saveSingleProduct('pos');">
                         <div class="row g-2 align-items-end">
                             <div class="col-md-4">
+                                <label for="pos-add-name" class="visually-hidden">ชื่อสินค้า</label>
                                 <input id="pos-add-name" class="form-control" placeholder="ชื่อสินค้า" required>
                             </div>
                             <div class="col-md-3">
+                                <label for="pos-add-cat" class="visually-hidden">หมวดหมู่</label>
                                 <input id="pos-add-cat" class="form-control" placeholder="หมวดหมู่" list="categoryList">
                             </div>
                             <div class="col-md-3">
-                                <input id="pos-add-price" type="number" step="0.01" class="form-control" placeholder="ราคาขาย" required>
+                                <label for="pos-add-price" class="visually-hidden">ราคาขาย</label>
+                                <input id="pos-add-price" type="number" step="0.01" min="0" class="form-control" placeholder="ราคาขาย" required>
                             </div>
                             <div class="col-md-2">
-                                <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm" style="background-color: var(--primary-color);">บันทึก</button>
+                                <button type="submit" id="btnAddPosProduct" class="btn btn-primary w-100 fw-bold shadow-sm" style="background-color: var(--primary-color);">บันทึก</button>
                             </div>
                         </div>
                     </form>
                 </div>
-                
+
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0 text-nowrap">
+                        <caption class="visually-hidden">รายการสินค้าหน้าร้าน</caption>
                         <thead class="table-light text-muted small">
                             <tr>
-                                <th class="ps-4" style="width: 40%;">ชื่อสินค้า</th>
-                                <th style="width: 25%;">หมวดหมู่</th>
-                                <th class="text-center" style="width: 20%;">ราคาขาย</th>
-                                <th class="text-center" style="width: 15%;">จัดการ</th>
+                                <th scope="col" class="ps-4" style="width: 40%;">ชื่อสินค้า</th>
+                                <th scope="col" style="width: 25%;">หมวดหมู่</th>
+                                <th scope="col" class="text-center" style="width: 20%;">ราคาขาย</th>
+                                <th scope="col" class="text-center" style="width: 15%;">จัดการ</th>
                             </tr>
                         </thead>
                         <tbody id="managePOSList"></tbody>
@@ -524,18 +584,19 @@
 
         <!-- หน้าจัดการคลังบิล -->
         <div id="page-manage-stock" class="page-section">
-            <h4 class="fw-bold mb-4"><i class="bi bi-boxes me-2 text-primary"></i>จัดการสินค้าคลัง (สำหรับออกบิล)</h4>
-            
+            <h2 class="fw-bold mb-4 h4"><i class="bi bi-boxes me-2 text-primary" aria-hidden="true"></i>จัดการสินค้าคลัง (สำหรับออกบิล)</h2>
+
             <div class="card p-3 shadow-sm mb-4 border-0 border-top border-success border-4">
-                <h6 class="fw-bold text-muted mb-3 small"><i class="bi bi-plus-circle me-1"></i>เพิ่มสินค้าทีละหลายรายการ</h6>
+                <h3 class="fw-bold text-muted mb-3 small h6"><i class="bi bi-plus-circle me-1" aria-hidden="true"></i>เพิ่มสินค้าทีละหลายรายการ</h3>
                 <div class="table-responsive">
                     <table class="table table-borderless align-middle mb-0" style="min-width: 500px;">
+                        <caption class="visually-hidden">เพิ่มสินค้าคลังหลายรายการ</caption>
                         <thead>
                             <tr class="small text-muted fw-bold border-bottom">
-                                <th style="width: 45%;" class="ps-0">ชื่อสินค้า (เช่น น้ำปลา)</th>
-                                <th style="width: 25%;">หมวดหมู่</th>
-                                <th style="width: 20%;">หน่วย (ลัง, แพ็ค)</th>
-                                <th style="width: 10%;"></th>
+                                <th scope="col" style="width: 45%;" class="ps-0">ชื่อสินค้า (เช่น น้ำปลา)</th>
+                                <th scope="col" style="width: 25%;">หมวดหมู่</th>
+                                <th scope="col" style="width: 20%;">หน่วย (ลัง, แพ็ค)</th>
+                                <th scope="col" style="width: 10%;"><span class="visually-hidden">สถานะ</span></th>
                             </tr>
                         </thead>
                         <tbody id="batch-add-stock-body"></tbody>
@@ -543,8 +604,8 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                     <small class="text-muted d-none d-sm-block">* เว้นว่างช่องไว้หากไม่ต้องการบันทึกแถวนั้น</small>
-                    <button onclick="window.saveBatchProducts()" class="btn btn-success fw-bold px-4 shadow-sm w-100 w-sm-auto">
-                        <i class="bi bi-save me-1"></i> บันทึกรายการใหม่ทั้งหมด
+                    <button id="btnSaveBatch" onclick="window.saveBatchProducts()" class="btn btn-success fw-bold px-4 shadow-sm w-100 w-sm-auto">
+                        <i class="bi bi-save me-1" aria-hidden="true"></i> บันทึกรายการใหม่ทั้งหมด
                     </button>
                 </div>
             </div>
@@ -553,14 +614,16 @@
                 <div class="card-header bg-white p-3 border-bottom">
                     <div class="row g-2 align-items-center">
                         <div class="col-12 col-md-5">
+                            <label for="stockSearchInput" class="visually-hidden">ค้นหาสินค้าในคลัง</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                                <span class="input-group-text bg-light border-end-0 text-muted" aria-hidden="true"><i class="bi bi-search"></i></span>
                                 <input type="text" id="stockSearchInput" class="form-control border-start-0 ps-0 bg-light" placeholder="ค้นหาชื่อสินค้าในคลัง..." onkeyup="window.renderManageProducts('stock')">
                             </div>
                         </div>
                         <div class="col-12 col-md-4">
+                            <label for="stockCategoryFilter" class="visually-hidden">กรองตามหมวดหมู่</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted small"><i class="bi bi-filter"></i> หมวดหมู่:</span>
+                                <span class="input-group-text bg-light border-end-0 text-muted small"><i class="bi bi-filter" aria-hidden="true"></i> หมวดหมู่:</span>
                                 <select id="stockCategoryFilter" class="form-select border-start-0 bg-light fw-bold text-secondary small" onchange="window.renderManageProducts('stock')">
                                     <option value="">ทั้งหมด</option>
                                 </select>
@@ -571,15 +634,16 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0 text-nowrap">
+                        <caption class="visually-hidden">รายการสินค้าในคลังบิล</caption>
                         <thead class="table-light text-muted small">
                             <tr>
-                                <th class="ps-4" style="width: 40%;">ชื่อสินค้า</th>
-                                <th style="width: 25%;">หมวดหมู่</th>
-                                <th class="text-center" style="width: 20%;">หน่วยมาตรฐาน</th>
-                                <th class="text-center" style="width: 15%;">จัดการ</th>
+                                <th scope="col" class="ps-4" style="width: 40%;">ชื่อสินค้า</th>
+                                <th scope="col" style="width: 25%;">หมวดหมู่</th>
+                                <th scope="col" class="text-center" style="width: 20%;">หน่วยมาตรฐาน</th>
+                                <th scope="col" class="text-center" style="width: 15%;">จัดการ</th>
                             </tr>
                         </thead>
                         <tbody id="manageStockList"></tbody>
@@ -592,7 +656,13 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, getDocs, where, limit, setDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+    import {
+        getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc,
+        onSnapshot, query, orderBy, getDocs, where, limit, writeBatch
+    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+    import {
+        getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCYfrzjsvZdDG9QBocJGb9xGvPm5dcqOx4",
@@ -604,74 +674,245 @@
         measurementId: "G-E06NK69NMY"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const app  = initializeApp(firebaseConfig);
+    const db   = getFirestore(app);
+    const auth = getAuth(app);
 
-    let currentUser = localStorage.getItem("angpao_user") || null;
+    // เขตเวลาของร้าน ใช้ตัดสินว่ารายการขายอยู่ในวันไหน
+    const SHOP_TZ = 'Asia/Bangkok';
+    // ชื่อผู้ใช้สั้น ๆ จะถูกแปลงเป็นอีเมลภายในก่อนส่งให้ Firebase Auth
+    const USER_DOMAIN = '@angpaostore.local';
+
+    let currentUser = null;   // ชื่อที่แสดง
+    let currentUid  = null;   // uid สำหรับประทับในทุกธุรกรรม
+    let currentRole = null;   // 'admin' หรือ 'staff'
+
+    // =========================================================
+    // ตัวช่วยพื้นฐาน
+    // =========================================================
+
+    // ป้องกัน XSS ทุกจุดที่นำค่าจากฐานข้อมูลไปต่อกับ innerHTML
+    const esc = (v) => String(v ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const money = (n) => Number(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const num   = (n) => Number(n || 0).toLocaleString('th-TH');
+
+    // คีย์วันที่ตามเขตเวลาไทย ไม่ใช่ UTC
+    // 'sv-SE' ให้รูปแบบ YYYY-MM-DD พอดี
+    const dayKey   = (ts) => new Date(ts).toLocaleDateString('sv-SE', { timeZone: SHOP_TZ });
+    const monthKey = (ts) => dayKey(ts).substring(0, 7);
+
+    // กันการกดปุ่มซ้ำระหว่างที่ยังบันทึกไม่เสร็จ
+    const busy = new Set();
+    async function once(key, btnId, fn) {
+        if (busy.has(key)) return;
+        busy.add(key);
+        const btn = btnId ? document.getElementById(btnId) : null;
+        if (btn) btn.disabled = true;
+        try {
+            return await fn();
+        } finally {
+            busy.delete(key);
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    function showError(title, err) {
+        console.error(title, err);
+        const permission = err && (err.code === 'permission-denied' || /permission/i.test(err.message || ''));
+        Swal.fire(
+            title,
+            permission
+                ? 'บัญชีของคุณไม่มีสิทธิ์ทำรายการนี้ กรุณาติดต่อผู้ดูแลระบบ'
+                : 'ไม่สามารถบันทึกข้อมูลได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่',
+            'error'
+        );
+    }
+
+    // =========================================================
+    // ระบบล็อกอิน (Firebase Authentication)
+    // =========================================================
+
+    document.getElementById('loginForm').onsubmit = (e) => {
+        e.preventDefault();
+        return once('login', 'loginBtn', async () => {
+            const raw   = document.getElementById('username').value.trim().toLowerCase();
+            const pass  = document.getElementById('password').value;
+            const email = raw.includes('@') ? raw : raw + USER_DOMAIN;
+
+            Swal.fire({ title: 'กำลังตรวจสอบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                Swal.fire({ icon: 'success', title: 'เข้าสู่ระบบสำเร็จ', timer: 1000, showConfirmButton: false });
+            } catch (err) {
+                // ไม่แยกว่าผิดที่ชื่อผู้ใช้หรือรหัสผ่าน เพื่อไม่ให้เดาได้ว่ามีบัญชีนี้อยู่จริงหรือไม่
+                console.error(err);
+                Swal.fire('เข้าสู่ระบบไม่สำเร็จ', 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง', 'error');
+            }
+        });
+    };
+
+    window.handleLogout = async () => {
+        stopListeners();
+        await signOut(auth);
+    };
 
     window.checkLoginStatus = () => {
-        if (currentUser) {
-            document.getElementById("login-section").style.display = "none";
-            document.getElementById("main-system-section").style.display = "block";
-            document.getElementById("currentUserDisplay").innerText = currentUser;
-        } else {
-            document.getElementById("login-section").style.display = "block";
-            document.getElementById("main-system-section").style.display = "none";
+        const ok = !!currentUid;
+        document.getElementById('login-section').style.display       = ok ? 'none'  : 'block';
+        document.getElementById('main-system-section').style.display = ok ? 'block' : 'none';
+        if (ok) {
+            document.getElementById('currentUserDisplay').innerText = currentUser || '-';
+            const badge = document.getElementById('currentRoleBadge');
+            badge.innerText = currentRole === 'admin' ? 'ผู้ดูแล' : 'พนักงาน';
         }
     };
 
-    const initDefaultUsers = async () => {
-        try {
-            const snapshot = await getDocs(collection(db, "users"));
-            if(snapshot.empty){
-                await setDoc(doc(db, "users", "admin"), { password: "1234", name: "ผู้ดูแลระบบ (Admin)" });
-                await setDoc(doc(db, "users", "staff"), { password: "1234", name: "พนักงานร้าน (Staff)" });
-            }
-        } catch (e) { console.log(e); }
-    };
-    initDefaultUsers();
+    function applyRoleVisibility() {
+        document.querySelectorAll('[data-admin-only]').forEach(el => {
+            el.style.display = (currentRole === 'admin') ? '' : 'none';
+        });
+    }
 
-    document.getElementById("loginForm").onsubmit = async (e) => {
-        e.preventDefault();
-        const userInp = document.getElementById("username").value.trim().toLowerCase();
-        const passInp = document.getElementById("password").value;
-
-        Swal.fire({ title: 'กำลังตรวจสอบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-        try {
-            const userDoc = await getDocs(query(collection(db, "users")));
-            let authenticated = false;
-            let displayUserName = "";
-
-            userDoc.forEach((d) => {
-                if(d.id === userInp && d.data().password === passInp) {
-                    authenticated = true;
-                    displayUserName = d.data().name || d.id;
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUid = user.uid;
+            try {
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                if (!snap.exists()) {
+                    currentUid = null;
+                    await signOut(auth);
+                    Swal.fire('ยังไม่ได้รับสิทธิ์', 'บัญชีนี้ยังไม่ได้กำหนดสิทธิ์การใช้งาน กรุณาติดต่อผู้ดูแลระบบ', 'warning');
+                    window.checkLoginStatus();
+                    return;
                 }
-            });
-
-            if (authenticated) {
-                currentUser = displayUserName;
-                localStorage.setItem("angpao_user", displayUserName);
-                Swal.fire({ icon: 'success', title: 'เข้าสู่ระบบสำเร็จ', timer: 1000, showConfirmButton: false });
-                document.getElementById("username").value = "";
-                document.getElementById("password").value = "";
+                currentRole = snap.data().role || 'staff';
+                currentUser = snap.data().name || user.email;
+            } catch (err) {
+                currentUid = null;
+                await signOut(auth);
+                showError('เกิดข้อผิดพลาด', err);
                 window.checkLoginStatus();
-            } else {
-                Swal.fire('ล้มเหลว', 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง', 'error');
+                return;
             }
-        } catch(err) {
-            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error');
+            window.checkLoginStatus();
+            applyRoleVisibility();
+            startListeners();
+        } else {
+            currentUid = null; currentRole = null; currentUser = null;
+            stopListeners();
+            window.checkLoginStatus();
         }
+    });
+
+    // =========================================================
+    // สถานะข้อมูลในหน่วยความจำ
+    // =========================================================
+
+    let posProducts = [], stockProducts = [], orderItems = [],
+        billsHistory = [], posSalesHistory = [], debtors = [], posCart = [];
+
+    let editingBillId = null;   // ไม่ null เมื่อกำลังดู/แก้บิลเดิม
+    let unsubscribers = [];
+
+    function stopListeners() {
+        unsubscribers.forEach(fn => { try { fn(); } catch (e) { /* ignore */ } });
+        unsubscribers = [];
+        posProducts = []; stockProducts = []; billsHistory = [];
+        posSalesHistory = []; debtors = []; posCart = []; orderItems = [];
+        editingBillId = null;
+    }
+
+    function onSnapError(label) {
+        return (err) => {
+            console.error(label, err);
+            window.hideLoading();
+            const box = document.getElementById('dataError');
+            box.classList.remove('d-none');
+            document.getElementById('dataErrorDetail').innerText =
+                (err && err.code === 'permission-denied')
+                    ? 'บัญชีของคุณไม่มีสิทธิ์อ่านข้อมูลส่วนนี้ กรุณาติดต่อผู้ดูแลระบบ'
+                    : 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้าใหม่';
+        };
+    }
+
+    function startListeners() {
+        if (unsubscribers.length) return;
+        document.getElementById('dataError').classList.add('d-none');
+
+        unsubscribers.push(onSnapshot(collection(db, 'products'), (s) => {
+            posProducts = s.docs.map(d => ({ id: d.id, ...d.data() }));
+            window.renderPOSProducts();
+            window.renderManageProducts('pos');
+            refreshCategoryDatalist();
+            window.hideLoading();
+        }, onSnapError('products')));
+
+        unsubscribers.push(onSnapshot(collection(db, 'stock_products'), (s) => {
+            stockProducts = s.docs.map(d => ({ id: d.id, ...d.data() }));
+            window.renderOrderProducts();
+            window.renderManageProducts('stock');
+            refreshCategoryDatalist();
+        }, onSnapError('stock_products')));
+
+        unsubscribers.push(onSnapshot(query(collection(db, 'bills'), orderBy('timestamp', 'desc'), limit(200)), (s) => {
+            billsHistory = s.docs.map(d => ({ id: d.id, ...d.data() }));
+            window.renderHistory();
+        }, onSnapError('bills')));
+
+        unsubscribers.push(onSnapshot(query(collection(db, 'pos_sales'), orderBy('timestamp', 'desc'), limit(500)), (s) => {
+            posSalesHistory = s.docs.map(d => ({ id: d.id, ...d.data() }));
+            window.renderSalesSummary();
+        }, onSnapError('pos_sales')));
+
+        unsubscribers.push(onSnapshot(collection(db, 'debtors'), (s) => {
+            debtors = s.docs.map(d => ({ id: d.id, ...d.data() }));
+            window.renderDebtors(document.getElementById('debtorSearchInput').value);
+        }, onSnapError('debtors')));
+    }
+
+    window.hideLoading = () => {
+        const loader = document.getElementById('loadingSpinner');
+        if (loader) loader.style.display = 'none';
     };
 
-    window.handleLogout = () => {
-        currentUser = null;
-        localStorage.removeItem("angpao_user");
-        window.checkLoginStatus();
+    // เติมรายการหมวดหมู่ให้ datalist ที่เดิมอ้างถึงแต่ไม่มีอยู่จริง
+    function refreshCategoryDatalist() {
+        const cats = [...new Set(
+            [...posProducts, ...stockProducts].map(p => (p.category || 'ทั่วไป'))
+        )].sort();
+        document.getElementById('categoryList').innerHTML =
+            cats.map(c => `<option value="${esc(c)}"></option>`).join('');
+    }
+
+    // =========================================================
+    // การสลับหน้า
+    // =========================================================
+
+    window.switchPage = (id, el) => {
+        document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        // จำกัดเฉพาะเมนูหลัก ไม่ไปลบสถานะของแท็บในหน้ารายงาน
+        document.querySelectorAll('#mainNav .nav-link').forEach(l => {
+            l.classList.remove('active');
+            l.removeAttribute('aria-current');
+        });
+        if (el) { el.classList.add('active'); el.setAttribute('aria-current', 'page'); }
+        window.scrollTo(0, 0);
     };
 
-    window.checkLoginStatus();
+    const today = new Date();
+    document.getElementById('currentDate').innerText =
+        today.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', timeZone: SHOP_TZ });
+    document.getElementById('summaryDate').value  = dayKey(today);
+    document.getElementById('summaryMonth').value = monthKey(today);
 
     window.toggleSummaryType = () => {
         const type = document.getElementById('summaryType').value;
@@ -679,145 +920,71 @@
         document.getElementById('summaryMonth').classList.toggle('d-none', type !== 'monthly');
         window.renderSalesSummary();
     };
-    
-    window.renderBatchInputFields = () => {
-        const container = document.getElementById('batch-add-stock-body');
-        if (!container) return;
-        
-        let html = '';
-        for (let i = 0; i < 5; i++) {
-            html += `
-                <tr>
-                    <td class="ps-0 py-2"><input class="form-control batch-name" placeholder="ชื่อสินค้า ${i+1}"></td>
-                    <td class="py-2"><input class="form-control batch-cat" placeholder="หมวดหมู่" list="categoryList"></td>
-                    <td class="py-2"><input class="form-control batch-unit" placeholder="หน่วย"></td>
-                    <td class="text-center py-2"><i class="bi bi-layers text-light"></i></td>
-                </tr>`;
-        }
-        container.innerHTML = html;
-    };
 
-    setTimeout(window.renderBatchInputFields, 1000);
-
-    window.saveBatchProducts = async () => {
-        const names = document.querySelectorAll('.batch-name');
-        const cats = document.querySelectorAll('.batch-cat');
-        const units = document.querySelectorAll('.batch-unit');
-        
-        let addedCount = 0;
-        const promises = [];
-
-        for (let i = 0; i < names.length; i++) {
-            const name = names[i].value.trim();
-            if (name) {
-                const data = {
-                    name: name,
-                    category: cats[i].value.trim() || 'ทั่วไป',
-                    defaultUnit: units[i].value.trim() || 'ชิ้น'
-                };
-                promises.push(addDoc(collection(db, "stock_products"), data));
-                addedCount++;
-            }
-        }
-
-        if (addedCount === 0) {
-            Swal.fire('กรุณากรอกข้อมูล', 'อย่างน้อย 1 รายการ', 'warning');
-            return;
-        }
-
-        try {
-            await Promise.all(promises);
-            Swal.fire({ icon: 'success', title: `เพิ่มสินค้า ${addedCount} รายการเรียบร้อย`, timer: 1500 });
-            names.forEach(input => input.value = '');
-            cats.forEach(input => input.value = '');
-            units.forEach(input => input.value = '');
-        } catch (error) {
-            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้', 'error');
-        }
-    };
-
-    let posProducts = [], stockProducts = [], orderItems = [], billsHistory = [], posSalesHistory = [], debtors = [], posCart = [];
-
-    window.switchPage = (id, el) => {
-        document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        if(el) el.classList.add('active');
-        window.scrollTo(0,0);
-    };
-
-    const d = new Date();
-    document.getElementById('currentDate').innerText = d.toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' });
-    document.getElementById('summaryDate').value = d.toISOString().split('T')[0];
-    document.getElementById('summaryMonth').value = d.toISOString().substring(0, 7);
-
-    window.hideLoading = () => {
-        const loader = document.getElementById('loadingSpinner');
-        if(loader) loader.style.display = 'none';
-    };
-
-    onSnapshot(collection(db, "products"), (s) => { 
-        posProducts = s.docs.map(d=>({id:d.id, ...d.data()})); 
-        window.renderPOSProducts(); 
-        window.renderManageProducts('pos'); 
-        window.hideLoading(); 
-    }, (err) => window.hideLoading());
-
-    onSnapshot(collection(db, "stock_products"), (s) => { 
-        stockProducts = s.docs.map(d=>({id:d.id, ...d.data()})); 
-        window.renderOrderProducts(); 
-        window.renderManageProducts('stock'); 
-    });
-
-    onSnapshot(query(collection(db, "bills"), orderBy("timestamp", "desc")), (s) => { 
-        billsHistory = s.docs.map(d=>({id:d.id, ...d.data()})); 
-        window.renderHistory(); 
-    });
-
-    onSnapshot(query(collection(db, "pos_sales"), orderBy("timestamp", "desc")), (s) => { 
-        posSalesHistory = s.docs.map(d=>({id:d.id, ...d.data()})); 
-        window.renderSalesSummary(); 
-    });
-
-    onSnapshot(collection(db, "debtors"), (s) => { 
-        debtors = s.docs.map(d=>({id:d.id, ...d.data()})); 
-        window.renderDebtors(); 
-    });
+    // =========================================================
+    // ระบบ POS
+    // =========================================================
 
     window.renderPOSProducts = () => {
         const grid = document.getElementById('posProductGrid');
-        const sortedPos = [...posProducts].sort((a, b) => a.name.localeCompare(b.name, 'th'));
-        grid.innerHTML = sortedPos.map(p => `
-            <div class="col-6 col-md-4 col-xl-3 pos-card" data-name="${p.name.toLowerCase()}">
-                <div class="card pos-item-card" onclick="window.addToPOS('${p.id}')" style="cursor:pointer; margin-bottom: 0;">
+        const sorted = [...posProducts]
+            .filter(p => p && p.name)                       // กันเอกสารที่ไม่มีชื่อทำให้ทั้งหน้าพัง
+            .sort((a, b) => a.name.localeCompare(b.name, 'th'));
+
+        if (!sorted.length) {
+            grid.innerHTML = `<div class="col-12 text-center text-muted py-5">ยังไม่มีสินค้าหน้าร้าน เพิ่มได้ที่เมนู "คลัง POS"</div>`;
+            return;
+        }
+
+        grid.innerHTML = sorted.map(p => `
+            <div class="col-6 col-md-4 col-xl-3 pos-card" data-name="${esc(p.name.toLowerCase())}">
+                <div class="card pos-item-card" role="button" tabindex="0"
+                     onclick="window.addToPOS('${esc(p.id)}')"
+                     onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.addToPOS('${esc(p.id)}');}"
+                     style="cursor:pointer; margin-bottom: 0;">
                     <div class="card-body text-center d-flex flex-column justify-content-center p-3">
-                        <div class="fw-bold text-dark mb-1" style="font-size: 0.95rem; line-height: 1.2;">${p.name}</div>
-                        <div class="pos-price-text mt-auto">฿${(p.price||0).toFixed(2)}</div>
+                        <div class="fw-bold text-dark mb-1" style="font-size: 0.95rem; line-height: 1.2;">${esc(p.name)}</div>
+                        <div class="pos-price-text mt-auto">฿${money(p.price)}</div>
                     </div>
                 </div>
             </div>`).join('');
+
+        window.searchPOSProduct();   // คงตัวกรองค้นหาไว้หลัง render ใหม่
     };
 
     window.searchPOSProduct = () => {
         const f = document.getElementById('posSearchInput').value.toLowerCase();
-        document.querySelectorAll('.pos-card').forEach(c => c.style.display = c.dataset.name.includes(f) ? '' : 'none');
+        document.querySelectorAll('.pos-card').forEach(c => {
+            c.style.display = (c.dataset.name || '').includes(f) ? '' : 'none';
+        });
     };
 
     window.addToPOS = (id) => {
         const p = posProducts.find(x => x.id === id);
+        if (!p) return;
         const item = posCart.find(x => x.id === id);
-        if (item) item.qty++; else posCart.push({ ...p, qty: 1 });
+        if (item) item.qty++; else posCart.push({ id: p.id, name: p.name, price: Number(p.price) || 0, qty: 1 });
         window.renderPOSCart();
     };
 
     window.addCustomPOSItem = async () => {
-        const { value: formValues } = await Swal.fire({
-            title: 'ราคาเอง',
-            html: '<input id="swal-name" class="swal2-input" placeholder="ชื่อรายการ"><input id="swal-price" type="number" class="swal2-input" placeholder="ราคา">',
-            preConfirm: () => [document.getElementById('swal-name').value || 'ทั่วไป', parseFloat(document.getElementById('swal-price').value) || 0]
+        const { value: v } = await Swal.fire({
+            title: 'กำหนดราคาเอง',
+            html: '<input id="swal-name" class="swal2-input" placeholder="ชื่อรายการ"><input id="swal-price" type="number" min="0" step="0.01" class="swal2-input" placeholder="ราคา">',
+            showCancelButton: true,
+            confirmButtonText: 'เพิ่มลงตะกร้า',
+            preConfirm: () => {
+                const name  = document.getElementById('swal-name').value.trim() || 'สินค้าทั่วไป';
+                const price = parseFloat(document.getElementById('swal-price').value);
+                if (!(price > 0)) { Swal.showValidationMessage('กรุณากรอกราคาที่มากกว่า 0'); return false; }
+                return { name, price };
+            }
         });
-        if (formValues && formValues[1] > 0) {
-            posCart.push({ id: 'c-'+Date.now(), name: formValues[0], price: formValues[1], qty: 1 });
+        if (v) {
+            posCart.push({
+                id: 'c-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+                name: v.name, price: v.price, qty: 1
+            });
             window.renderPOSCart();
         }
     };
@@ -826,130 +993,212 @@
         const list = document.getElementById('posCartList');
         if (!posCart.length) {
             list.innerHTML = '<tr><td class="text-center py-5 text-muted">ไม่มีสินค้าในตะกร้า</td></tr>';
-            document.getElementById('posTotal').innerText = "฿0.00";
-            document.getElementById('posItemCount').innerText = "0";
+            document.getElementById('posTotal').innerText = '฿0.00';
+            document.getElementById('posItemCount').innerText = '0';
             return;
         }
         let total = 0;
         list.innerHTML = posCart.map(i => {
             total += i.price * i.qty;
             return `<tr>
-                <td class="ps-3 py-3 border-bottom"><b class="text-dark">${i.name}</b></td>
-                <td class="border-bottom" style="width: 110px;">
+                <td class="ps-3 py-3 border-bottom"><b class="text-dark">${esc(i.name)}</b></td>
+                <td class="border-bottom" style="width: 130px;">
                     <div class="input-group input-group-sm">
-                        <button class="btn btn-outline-secondary bg-light" onclick="window.updatePOSQty('${i.id}',-1)">-</button>
-                        <input class="form-control text-center fw-bold bg-white" value="${i.qty}" readonly>
-                        <button class="btn btn-outline-secondary bg-light" onclick="window.updatePOSQty('${i.id}',1)">+</button>
+                        <button class="btn btn-outline-secondary bg-light" aria-label="ลดจำนวน ${esc(i.name)}" onclick="window.updatePOSQty('${esc(i.id)}',-1)">-</button>
+                        <input class="form-control text-center fw-bold bg-white" type="number" min="0" step="1"
+                               value="${esc(i.qty)}" aria-label="จำนวน ${esc(i.name)}"
+                               onchange="window.setPOSQty('${esc(i.id)}', this.value)">
+                        <button class="btn btn-outline-secondary bg-light" aria-label="เพิ่มจำนวน ${esc(i.name)}" onclick="window.updatePOSQty('${esc(i.id)}',1)">+</button>
                     </div>
                 </td>
-                <td class="text-end pe-3 py-3 border-bottom fw-bold text-dark">฿${(i.price*i.qty).toFixed(2)}</td>
+                <td class="text-end pe-3 py-3 border-bottom fw-bold text-dark">฿${money(i.price * i.qty)}</td>
             </tr>`;
         }).join('');
-        document.getElementById('posTotal').innerText = `฿${total.toFixed(2)}`;
-        document.getElementById('posItemCount').innerText = posCart.reduce((s,i)=>s+i.qty,0);
+        document.getElementById('posTotal').innerText = `฿${money(total)}`;
+        document.getElementById('posItemCount').innerText = posCart.reduce((s, i) => s + i.qty, 0);
     };
 
     window.updatePOSQty = (id, delta) => {
         const i = posCart.find(x => x.id === id);
-        if (i) { i.qty += delta; if(i.qty <= 0) posCart = posCart.filter(x => x.id !== id); window.renderPOSCart(); }
+        if (!i) return;
+        i.qty += delta;
+        if (i.qty <= 0) posCart = posCart.filter(x => x.id !== id);
+        window.renderPOSCart();
     };
 
-    window.checkoutPOS = async () => {
-        if (!posCart.length) return;
-        const total = posCart.reduce((s,i)=>s+(i.price*i.qty),0);
-        const { value: cash } = await Swal.fire({
+    window.setPOSQty = (id, raw) => {
+        const i = posCart.find(x => x.id === id);
+        if (!i) return;
+        const q = parseInt(raw, 10);
+        if (!Number.isFinite(q) || q <= 0) posCart = posCart.filter(x => x.id !== id);
+        else i.qty = q;
+        window.renderPOSCart();
+    };
+
+    window.checkoutPOS = () => once('checkoutCash', 'btnCheckoutCash', async () => {
+        if (!posCart.length) { Swal.fire('ตะกร้าว่าง', 'กรุณาเลือกสินค้าก่อน', 'info'); return; }
+        const total = posCart.reduce((s, i) => s + (i.price * i.qty), 0);
+
+        const { value: cash, isConfirmed } = await Swal.fire({
             title: 'รับเงินสด',
-            html: `<h2 class="text-success fw-bold mb-3">฿${total.toLocaleString(undefined, {minimumFractionDigits:2})}</h2><input id="cash-input" type="number" class="form-control form-control-lg text-center" placeholder="ใส่จำนวนเงินที่รับมา">`,
+            html: `<h2 class="text-success fw-bold mb-3">฿${money(total)}</h2>
+                   <label for="cash-input" class="form-label small text-muted">จำนวนเงินที่รับมา</label>
+                   <input id="cash-input" type="number" min="0" step="0.01" class="form-control form-control-lg text-center" placeholder="0.00">`,
             showCancelButton: true,
             confirmButtonText: 'ทอนเงิน',
             confirmButtonColor: '#10b981',
-            preConfirm: () => parseFloat(document.getElementById('cash-input').value)
+            preConfirm: () => {
+                const v = parseFloat(document.getElementById('cash-input').value);
+                if (!Number.isFinite(v)) { Swal.showValidationMessage('กรุณากรอกจำนวนเงินที่รับมา'); return false; }
+                if (v < total) { Swal.showValidationMessage(`เงินที่รับมาน้อยกว่ายอดรวม ฿${money(total)}`); return false; }
+                return v;
+            }
         });
-        if (cash >= total) {
-            await addDoc(collection(db, "pos_sales"), { timestamp: Date.now(), items: posCart, totalAmount: total, paymentMethod: 'cash', handledBy: currentUser });
+        if (!isConfirmed) return;
+
+        const snapshot = posCart.map(i => ({ ...i }));
+        try {
+            await addDoc(collection(db, 'pos_sales'), {
+                timestamp: Date.now(),
+                items: snapshot,
+                totalAmount: total,
+                creditAmount: 0,
+                paymentMethod: 'cash',
+                handledBy: currentUser,
+                uid: currentUid
+            });
+            posCart = [];
+            window.renderPOSCart();
             Swal.fire({
                 title: 'สำเร็จ',
-                html: `<div class="text-muted mb-2">เงินทอน</div><h1 class="text-primary fw-bold" style="font-size: 3rem;">฿${(cash - total).toLocaleString(undefined, {minimumFractionDigits:2})}</h1>`,
+                html: `<div class="text-muted mb-2">เงินทอน</div><p class="text-primary fw-bold m-0" style="font-size: 3rem;">฿${money(cash - total)}</p>`,
                 icon: 'success'
             });
-            posCart = []; window.renderPOSCart();
-        } else if(cash < total) {
-             Swal.fire('ยอดเงินไม่พอ', 'ระบุจำนวนเงินสดให้ถูกต้อง', 'warning');
+        } catch (err) {
+            showError('บันทึกการขายไม่สำเร็จ', err);
         }
-    };
+    });
 
-    window.checkoutCreditPOS = async () => {
-        if (!posCart.length) return;
+    window.checkoutCreditPOS = () => once('checkoutCredit', 'btnCheckoutCredit', async () => {
+        if (!posCart.length) { Swal.fire('ตะกร้าว่าง', 'กรุณาเลือกสินค้าก่อน', 'info'); return; }
         const total = posCart.reduce((s, i) => s + (i.price * i.qty), 0);
-        const options = debtors.reduce((acc, d) => ({ ...acc, [d.id]: `${d.name} (ค้าง ฿${(d.balance || 0).toLocaleString()} | ฝาก ฿${(d.deposit || 0).toLocaleString()})` }), {});
-        const { value: debtorId } = await Swal.fire({ title: 'เลือกลูกหนี้ลงบัญชี', input: 'select', inputOptions: options, showCancelButton: true, confirmButtonText: 'ยืนยัน', confirmButtonColor: '#f59e0b' });
-        
-        if (debtorId) {
-            const debtor = debtors.find(d => d.id === debtorId);
-            const ts = Date.now();
-            
-            let currentBalance = debtor.balance || 0;
-            let currentDeposit = debtor.deposit || 0;
-            let finalAmountToDebt = total;
-            let logNote = "เซ็นหน้าร้าน";
 
-            if (currentDeposit > 0) {
-                if (currentDeposit >= total) {
-                    currentDeposit -= total;
-                    finalAmountToDebt = 0;
-                    logNote = `ตัดจากเงินฝากหน้าร้าน (คงเหลือเงินฝาก ฿${currentDeposit.toLocaleString()})`;
-                } else {
-                    finalAmountToDebt = total - currentDeposit;
-                    logNote = `หักเงินฝากทั้งหมด ฿${currentDeposit.toLocaleString()} และเซ็นเพิ่มส่วนต่าง ฿${finalAmountToDebt.toLocaleString()}`;
-                    currentDeposit = 0;
-                }
-            }
+        const active = debtors.filter(d => d && d.name && d.status !== 'archived');
+        if (!active.length) { Swal.fire('ยังไม่มีลูกค้า', 'กรุณาเพิ่มลูกค้าในหน้าลูกหนี้ก่อน', 'info'); return; }
 
-            if (finalAmountToDebt > 0 && debtor.creditLimit > 0 && currentBalance + finalAmountToDebt > debtor.creditLimit) {
-                Swal.fire('ยอดรวมเกินวงเงิน!', `ลูกค้ามีวงเงิน ฿${debtor.creditLimit.toLocaleString()} แต่ยอดค้างรวมจะเป็น ฿${(currentBalance + finalAmountToDebt).toLocaleString()}`, 'error');
-                return;
-            }
+        const options = active.reduce((acc, d) => ({
+            ...acc,
+            // SweetAlert2 เรนเดอร์ option ด้วย innerHTML จึงต้อง escape ชื่อลูกค้า
+            [d.id]: `${esc(d.name)} (ค้าง ฿${num(d.balance)} | สแกนเหลือ ฿${num(d.deposit)})`
+        }), {});
 
-            try {
-                let updatedBalance = currentBalance + finalAmountToDebt;
-                await updateDoc(doc(db, "debtors", debtorId), { balance: updatedBalance, deposit: currentDeposit, updatedAt: ts });
-                await addDoc(collection(db, "debt_history"), { debtorId, type: finalAmountToDebt > 0 ? 'add' : 'use_deposit', amount: total, note: logNote, timestamp: ts, handledBy: currentUser });
-                await addDoc(collection(db, "pos_sales"), { timestamp: ts, items: posCart, totalAmount: total, paymentMethod: 'credit', debtorId, debtorName: debtor.name, handledBy: currentUser });
-                
-                posCart = []; 
-                window.renderPOSCart();
-                Swal.fire('ลงบัญชีเรียบร้อย', '', 'success');
-            } catch (error) {
-                Swal.fire('เกิดข้อผิดพลาด', 'บันทึกข้อมูลไม่สำเร็จ', 'error');
+        const { value: debtorId } = await Swal.fire({
+            title: 'เลือกลูกหนี้ลงบัญชี', input: 'select', inputOptions: options,
+            showCancelButton: true, confirmButtonText: 'ยืนยัน', confirmButtonColor: '#f59e0b'
+        });
+        if (!debtorId) return;
+
+        const debtor = debtors.find(d => d.id === debtorId);
+        if (!debtor) { Swal.fire('ไม่พบลูกค้า', 'รายชื่อนี้อาจถูกเปลี่ยนแปลงไปแล้ว กรุณาลองใหม่', 'warning'); return; }
+
+        const ts = Date.now();
+        let currentBalance = debtor.balance || 0;
+        let currentDeposit = debtor.deposit || 0;
+        let finalAmountToDebt = total;
+        let depositUsed = 0;
+        let logNote = 'เซ็นหน้าร้าน';
+
+        if (currentDeposit > 0) {
+            if (currentDeposit >= total) {
+                depositUsed = total;
+                currentDeposit -= total;
+                finalAmountToDebt = 0;
+                logNote = `ตัดจากเงินสแกนหน้าร้าน (คงเหลือ ฿${num(currentDeposit)})`;
+            } else {
+                depositUsed = currentDeposit;
+                finalAmountToDebt = total - currentDeposit;
+                logNote = `หักเงินสแกน ฿${num(currentDeposit)} และเซ็นเพิ่มส่วนต่าง ฿${num(finalAmountToDebt)}`;
+                currentDeposit = 0;
             }
         }
-    };
+
+        if (finalAmountToDebt > 0 && debtor.creditLimit > 0 && currentBalance + finalAmountToDebt > debtor.creditLimit) {
+            Swal.fire('ยอดรวมเกินวงเงิน!',
+                `ลูกค้ามีวงเงิน ฿${num(debtor.creditLimit)} แต่ยอดค้างรวมจะเป็น ฿${num(currentBalance + finalAmountToDebt)}`, 'error');
+            return;
+        }
+
+        const snapshot = posCart.map(i => ({ ...i }));
+        const updatedBalance = currentBalance + finalAmountToDebt;
+
+        try {
+            // เขียนทั้งสามเอกสารใน batch เดียว ถ้าล้มเหลวจะไม่มีอะไรถูกบันทึกเลย
+            const batch = writeBatch(db);
+
+            batch.update(doc(db, 'debtors', debtorId), {
+                balance: updatedBalance, deposit: currentDeposit, updatedAt: ts
+            });
+            batch.set(doc(collection(db, 'debt_history')), {
+                debtorId,
+                type: finalAmountToDebt > 0 ? 'add' : 'use_deposit',
+                amount: total,
+                balanceDelta: finalAmountToDebt,     // ผลกระทบต่อยอดหนี้จริง
+                depositDelta: -depositUsed,          // ผลกระทบต่อเงินสแกนจริง
+                balanceAfter: updatedBalance,
+                depositAfter: currentDeposit,
+                note: logNote,
+                timestamp: ts, createdAt: ts,
+                handledBy: currentUser, uid: currentUid
+            });
+            batch.set(doc(collection(db, 'pos_sales')), {
+                timestamp: ts,
+                items: snapshot,
+                totalAmount: total,
+                creditAmount: finalAmountToDebt,     // ส่วนที่กลายเป็นหนี้จริง
+                depositAmount: depositUsed,          // ส่วนที่ตัดจากเงินสแกน
+                paymentMethod: 'credit',
+                debtorId, debtorName: debtor.name,
+                handledBy: currentUser, uid: currentUid
+            });
+
+            await batch.commit();
+            posCart = [];
+            window.renderPOSCart();
+            Swal.fire('ลงบัญชีเรียบร้อย', logNote, 'success');
+        } catch (err) {
+            showError('ลงบัญชีไม่สำเร็จ', err);
+        }
+    });
+
+    // =========================================================
+    // ลูกหนี้
+    // =========================================================
 
     window.updateDebtManually = async (id, type) => {
         const debtor = debtors.find(d => d.id === id);
         if (!debtor) return;
 
-        const today = new Date().toISOString().split('T')[0];
+        const todayStr = dayKey(Date.now());
 
         const { value: formValues } = await Swal.fire({
             title: type === 'add' ? 'บันทึกยอดเซ็นเพิ่ม' : 'รับชำระหนี้',
             html: `
                 <div class="text-start mb-3">
-                    <label class="form-label small fw-bold text-muted">ยอดเงิน (฿)</label>
-                    <input id="swal-amount" type="number" step="0.01" class="form-control form-control-lg" placeholder="0.00">
+                    <label for="swal-amount" class="form-label small fw-bold text-muted">ยอดเงิน (฿)</label>
+                    <input id="swal-amount" type="number" min="0" step="0.01" class="form-control form-control-lg" placeholder="0.00">
                 </div>
                 <div class="text-start mb-3">
-                    <label class="form-label small fw-bold text-muted">วันที่บันทึก</label>
-                    <input id="swal-date" type="date" class="form-control" value="${today}">
+                    <label for="swal-date" class="form-label small fw-bold text-muted">วันที่ทางบัญชี</label>
+                    <input id="swal-date" type="date" class="form-control" value="${esc(todayStr)}" max="${esc(todayStr)}">
                 </div>
                 <div class="text-start mb-3">
-                    <label class="form-label small fw-bold text-muted">หมายเหตุ</label>
+                    <label for="swal-note" class="form-label small fw-bold text-muted">หมายเหตุ</label>
                     <textarea id="swal-note" class="form-control" rows="2" placeholder="${type === 'add' ? 'เช่น ค่าของชำ' : 'เช่น โอนเงิน'}"></textarea>
                 </div>
-                <div class="p-3 bg-light rounded-3 text-start small border border-1 border-light">
-                    <div class="text-dark mb-1">ยอดค้างปัจจุบัน: <b class="text-danger fs-6">฿${(debtor.balance || 0).toLocaleString()}</b></div>
-                    <div class="text-dark">ยอดเงินฝากเหลือ: <b class="text-success fs-6">฿${(debtor.deposit || 0).toLocaleString()}</b></div>
-                    ${debtor.creditLimit > 0 ? `<div class="text-muted mt-2 border-top pt-2">วงเงินคงเหลือสำรอง: ฿${(debtor.creditLimit - (debtor.balance || 0)).toLocaleString()}</div>` : ''}
+                <div class="p-3 bg-light rounded-3 text-start small border">
+                    <div class="text-dark mb-1">ยอดค้างปัจจุบัน: <b class="text-danger fs-6">฿${money(debtor.balance)}</b></div>
+                    <div class="text-dark">เงินสแกนเหลือ: <b class="text-success fs-6">฿${money(debtor.deposit)}</b></div>
+                    ${debtor.creditLimit > 0 ? `<div class="text-muted mt-2 border-top pt-2">วงเงินคงเหลือ: ฿${money(debtor.creditLimit - (debtor.balance || 0))}</div>` : ''}
                 </div>
             `,
             focusConfirm: false,
@@ -959,29 +1208,23 @@
             cancelButtonText: 'ยกเลิก',
             preConfirm: () => {
                 const amount = parseFloat(document.getElementById('swal-amount').value);
-                const date = document.getElementById('swal-date').value;
-                const note = document.getElementById('swal-note').value.trim();
-                
-                if (!amount || amount <= 0) {
-                    Swal.showValidationMessage('กรุณากรอกยอดเงินที่ถูกต้อง');
-                    return false;
-                }
-                if (!date) {
-                    Swal.showValidationMessage('กรุณาเลือกวันที่');
-                    return false;
-                }
-                return { 
-                    amount, 
-                    date, 
-                    note: note || (type === 'add' ? 'บันทึกเซ็นเพิ่มเติม' : 'รับชำระเงิน/ฝากเงิน') 
-                };
+                const date   = document.getElementById('swal-date').value;
+                const note   = document.getElementById('swal-note').value.trim();
+                if (!Number.isFinite(amount) || amount <= 0) { Swal.showValidationMessage('กรุณากรอกยอดเงินที่มากกว่า 0'); return false; }
+                if (!date) { Swal.showValidationMessage('กรุณาเลือกวันที่'); return false; }
+                return { amount, date, note: note || (type === 'add' ? 'บันทึกเซ็นเพิ่มเติม' : 'รับชำระเงิน') };
             }
         });
+        if (!formValues) return;
 
-        if (formValues) {
+        return once('debt-' + id, null, async () => {
+            // อ่านยอดล่าสุดอีกครั้งตอนกดบันทึก เพื่อลดโอกาสเขียนทับงานของเครื่องอื่น
+            const fresh = debtors.find(d => d.id === id) || debtor;
             const { amount, date, note } = formValues;
-            let currentBalance = debtor.balance || 0;
-            let currentDeposit = debtor.deposit || 0;
+
+            let currentBalance = fresh.balance || 0;
+            let currentDeposit = fresh.deposit || 0;
+            const beforeBalance = currentBalance, beforeDeposit = currentDeposit;
             let finalNote = note;
 
             if (type === 'add') {
@@ -990,363 +1233,475 @@
                     if (currentDeposit >= totalCharge) {
                         currentDeposit -= totalCharge;
                         totalCharge = 0;
-                        finalNote += ` (หักลบจากเงินฝากเดิมทั้งหมด ยอดเงินฝากเหลือ ฿${currentDeposit.toLocaleString()})`;
+                        finalNote += ` (หักจากเงินสแกนทั้งหมด คงเหลือ ฿${num(currentDeposit)})`;
                     } else {
                         totalCharge -= currentDeposit;
-                        finalNote += ` (หักล้างเงินฝากเดิม ฿${currentDeposit.toLocaleString()} และตั้งยอดหนี้เพิ่ม ฿${totalCharge.toLocaleString()})`;
+                        finalNote += ` (หักเงินสแกน ฿${num(currentDeposit)} ตั้งหนี้เพิ่ม ฿${num(totalCharge)})`;
                         currentDeposit = 0;
                     }
                 }
-
-                if (totalCharge > 0 && debtor.creditLimit > 0 && (currentBalance + totalCharge) > debtor.creditLimit) {
-                    Swal.fire('ยอดรวมเกินวงเงินเครดิต!', `ไม่สามารถบันทึกได้เนื่องจากยอดหนี้เกินขีดจำกัด`, 'error');
+                if (totalCharge > 0 && fresh.creditLimit > 0 && (currentBalance + totalCharge) > fresh.creditLimit) {
+                    Swal.fire('ยอดรวมเกินวงเงินเครดิต!', 'ไม่สามารถบันทึกได้เนื่องจากยอดหนี้จะเกินวงเงินที่กำหนดไว้', 'error');
                     return;
                 }
                 currentBalance += totalCharge;
-
             } else {
                 let payAmount = amount;
                 if (currentBalance > 0) {
                     if (payAmount >= currentBalance) {
                         payAmount -= currentBalance;
-                        finalNote += ` (ชำระหนี้ค้างทั้งหมด ฿${currentBalance.toLocaleString()} และเปลี่ยนส่วนเกินเป็นเงินฝาก ฿${payAmount.toLocaleString()})`;
+                        finalNote += ` (ชำระหนี้ ฿${num(currentBalance)} ส่วนเกิน ฿${num(payAmount)} เก็บเป็นเงินรับล่วงหน้า)`;
                         currentBalance = 0;
                         currentDeposit += payAmount;
                     } else {
                         currentBalance -= payAmount;
-                        finalNote += ` (ชำระหนี้บางส่วน ยอดหนี้เหลือ ฿${currentBalance.toLocaleString()})`;
+                        finalNote += ` (ชำระบางส่วน คงเหลือหนี้ ฿${num(currentBalance)})`;
                     }
                 } else {
                     currentDeposit += payAmount;
-                    finalNote += ` (เติมเงินฝากเพิ่ม ยอดฝากรวมเป็น ฿${currentDeposit.toLocaleString()})`;
+                    finalNote += ` (เติมเงินรับล่วงหน้า รวมเป็น ฿${num(currentDeposit)})`;
                 }
             }
-            
-            const selectedDate = new Date(date);
-            const now = new Date();
-            selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
-            const ts = selectedDate.getTime();
-            const dateStr = selectedDate.toLocaleDateString('th-TH') + ' ' + selectedDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+
+            // วันที่ทางบัญชีตามที่ผู้ใช้เลือก แต่เก็บเวลาที่บันทึกจริงแยกไว้ตรวจสอบย้อนหลัง
+            const effective = new Date(`${date}T12:00:00`).getTime();
+            const createdAt = Date.now();
 
             try {
-                await updateDoc(doc(db, "debtors", id), { balance: currentBalance, deposit: currentDeposit, updatedAt: Date.now() });
-                await addDoc(collection(db, "debt_history"), { 
-                    debtorId: id, type, amount, note: finalNote, timestamp: ts, dateDisplay: dateStr, handledBy: currentUser 
+                const batch = writeBatch(db);
+                batch.update(doc(db, 'debtors', id), {
+                    balance: currentBalance, deposit: currentDeposit, updatedAt: createdAt
                 });
-                Swal.fire({ icon: 'success', title: 'บันทึกข้อมูลเรียบร้อย', timer: 2000, showConfirmButton: false });
-            } catch (error) {
-                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกได้', 'error');
+                batch.set(doc(collection(db, 'debt_history')), {
+                    debtorId: id, type, amount,
+                    balanceDelta: currentBalance - beforeBalance,
+                    depositDelta: currentDeposit - beforeDeposit,
+                    balanceAfter: currentBalance,
+                    depositAfter: currentDeposit,
+                    note: finalNote,
+                    timestamp: effective,            // วันที่ทางบัญชี
+                    createdAt,                       // เวลาที่บันทึกจริง
+                    backdated: dayKey(effective) !== dayKey(createdAt),
+                    handledBy: currentUser, uid: currentUid
+                });
+                await batch.commit();
+                Swal.fire({ icon: 'success', title: 'บันทึกข้อมูลเรียบร้อย', timer: 1800, showConfirmButton: false });
+            } catch (err) {
+                showError('บันทึกไม่สำเร็จ', err);
             }
-        }
+        });
     };
 
-    window.renderDebtors = (filter = "") => {
-        const tableBody = document.getElementById('debtorListTable');
+    window.renderDebtors = (filter = '') => {
+        const tableBody      = document.getElementById('debtorListTable');
         const cardsContainer = document.getElementById('debtorListCards');
         if (!tableBody || !cardsContainer) return;
 
-        const totalDebt = debtors.reduce((s, d) => s + (d.balance || 0), 0);
-        const totalDeposit = debtors.reduce((s, d) => s + (d.deposit || 0), 0);
-        
-        document.getElementById('totalAllDebtDisplay').innerText = totalDebt.toLocaleString(undefined, { minimumFractionDigits: 2 });
-        document.getElementById('totalAllDepositDisplay').innerText = totalDeposit.toLocaleString(undefined, { minimumFractionDigits: 2 });
+        const live = debtors.filter(d => d && d.name && d.status !== 'archived');
 
-        let result = debtors.filter(d => d.name.toLowerCase().includes(filter.toLowerCase()));
-        
-        const sortFilterVal = document.getElementById('debtorSortFilter') ? document.getElementById('debtorSortFilter').value : 'debt_desc';
+        const totalDebt    = live.reduce((s, d) => s + (d.balance || 0), 0);
+        const totalDeposit = live.reduce((s, d) => s + (d.deposit || 0), 0);
+        document.getElementById('totalAllDebtDisplay').innerText    = money(totalDebt);
+        document.getElementById('totalAllDepositDisplay').innerText = money(totalDeposit);
 
-        if (sortFilterVal === 'only_debt') {
-            result = result.filter(d => (d.balance || 0) > 0);
-            result.sort((a, b) => (b.balance || 0) - (a.balance || 0));
-        } else if (sortFilterVal === 'only_deposit') {
-            result = result.filter(d => (d.deposit || 0) > 0);
-            result.sort((a, b) => (b.deposit || 0) - (a.deposit || 0));
-        } else if (sortFilterVal === 'debt_desc') {
-            result.sort((a, b) => (b.balance || 0) - (a.balance || 0));
-        } else if (sortFilterVal === 'debt_asc') {
-            result.sort((a, b) => (a.balance || 0) - (b.balance || 0));
-        } else if (sortFilterVal === 'deposit_desc') {
-            result.sort((a, b) => (b.deposit || 0) - (a.deposit || 0));
-        } else if (sortFilterVal === 'name_asc') {
-            result.sort((a, b) => a.name.localeCompare(b.name, 'th'));
+        const sortEl = document.getElementById('debtorSortFilter');
+        const mode   = sortEl ? sortEl.value : 'debt_desc';
+
+        let result = (mode === 'archived'
+            ? debtors.filter(d => d && d.name && d.status === 'archived')
+            : live
+        ).filter(d => d.name.toLowerCase().includes(String(filter).toLowerCase()));
+
+        if (mode === 'only_debt')          { result = result.filter(d => (d.balance || 0) > 0); result.sort((a, b) => (b.balance || 0) - (a.balance || 0)); }
+        else if (mode === 'only_deposit')  { result = result.filter(d => (d.deposit || 0) > 0); result.sort((a, b) => (b.deposit || 0) - (a.deposit || 0)); }
+        else if (mode === 'debt_desc')     { result.sort((a, b) => (b.balance || 0) - (a.balance || 0)); }
+        else if (mode === 'debt_asc')      { result.sort((a, b) => (a.balance || 0) - (b.balance || 0)); }
+        else if (mode === 'deposit_desc')  { result.sort((a, b) => (b.deposit || 0) - (a.deposit || 0)); }
+        else                               { result.sort((a, b) => a.name.localeCompare(b.name, 'th')); }
+
+        if (!result.length) {
+            const msg = debtors.length
+                ? 'ไม่พบลูกค้าที่ตรงกับเงื่อนไข'
+                : 'ยังไม่มีรายชื่อลูกค้า กดปุ่ม "เพิ่มลูกค้า" เพื่อเริ่มต้น';
+            tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-5">${esc(msg)}</td></tr>`;
+            cardsContainer.innerHTML = `<div class="text-center text-muted py-5">${esc(msg)}</div>`;
+            return;
         }
 
+        const statusChip = (balance, deposit) => {
+            if (balance > 0) return '<span class="status-chip chip-debt">ค้างชำระ</span>';
+            if (deposit > 0) return '<span class="status-chip chip-deposit">มีเงินเหลือ</span>';
+            return '<span class="status-chip chip-clear">ไม่มียอดค้าง</span>';
+        };
+
+        const actionMenu = (d) => `
+            <div class="dropdown d-inline-block">
+                <button class="btn btn-light border action-btn-pill px-2 text-muted" type="button"
+                        data-bs-toggle="dropdown" aria-label="ตัวเลือกเพิ่มเติมของ ${esc(d.name)}">
+                    <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm small border-0 mt-1">
+                    <li><a class="dropdown-item py-2" href="#" onclick="window.viewDebtHistory('${esc(d.id)}'); return false;"><i class="bi bi-clock-history me-2 text-primary" aria-hidden="true"></i>ประวัติบัญชี</a></li>
+                    <li><a class="dropdown-item py-2" href="#" onclick="window.editDebtor('${esc(d.id)}'); return false;"><i class="bi bi-pencil-square me-2 text-warning" aria-hidden="true"></i>แก้ไขข้อมูล</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item py-2 text-danger" href="#" onclick="window.archiveDebtor('${esc(d.id)}'); return false;"><i class="bi bi-archive me-2" aria-hidden="true"></i>ปิดบัญชี</a></li>
+                </ul>
+            </div>`;
+
         tableBody.innerHTML = result.map(d => {
-            const balance = d.balance || 0;
-            const deposit = d.deposit || 0;
-            const limit = (d.creditLimit > 0) ? `฿${parseFloat(d.creditLimit).toLocaleString()}` : 'ไม่จำกัด';
-            
+            const balance = d.balance || 0, deposit = d.deposit || 0;
+            const lim = (d.creditLimit > 0) ? `฿${num(d.creditLimit)}` : 'ไม่จำกัด';
             return `
                 <tr>
-                    <td class="ps-4 fw-bold text-dark">${d.name}</td>
-                    <td class="text-center">
-                        <span class="fw-bold" style="color: var(--danger-color); font-size: 1.05rem;">฿${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                    </td>
-                    <td class="text-center">
-                        <span class="fw-bold" style="color: var(--success-color); font-size: 1.05rem;">฿${deposit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                    </td>
-                    <td class="text-center text-muted small">${limit}</td>
+                    <td class="ps-4 fw-bold text-dark">${esc(d.name)} ${statusChip(balance, deposit)}</td>
+                    <td class="text-center"><span class="fw-bold" style="color: var(--danger-color); font-size: 1.05rem;">฿${money(balance)}</span></td>
+                    <td class="text-center"><span class="fw-bold" style="color: var(--success-color); font-size: 1.05rem;">฿${money(deposit)}</span></td>
+                    <td class="text-center text-muted small">${esc(lim)}</td>
                     <td class="text-center">
                         <div class="d-inline-flex gap-2 align-items-center">
-                            <button class="btn btn-outline-danger action-btn-pill fw-bold bg-white" title="บันทึกยอดเซ็นเพิ่ม" onclick="window.updateDebtManually('${d.id}', 'add')">
-                                + เซ็นเพิ่ม
-                            </button>
-                            <button class="btn btn-success action-btn-pill fw-bold" style="background-color: var(--success-color); border:none;" title="รับชำระหนี้/ฝากเงิน" onclick="window.updateDebtManually('${d.id}', 'pay')">
-                                จ่ายหนี้
-                            </button>
-                            
-                            <div class="dropdown d-inline-block">
-                                <button class="btn btn-light border action-btn-pill px-2 text-muted" type="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-gear-fill"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm small border-0 mt-1">
-                                    <li><a class="dropdown-item py-2" href="#" onclick="window.viewDebtHistory('${d.id}')"><i class="bi bi-clock-history me-2 text-primary"></i>ประวัติบัญชี</a></li>
-                                    <li><a class="dropdown-item py-2" href="#" onclick="window.editDebtor('${d.id}')"><i class="bi bi-pencil-square me-2 text-warning"></i>แก้ไขข้อมูล</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item py-2 text-danger" href="#" onclick="window.deleteDebtor('${d.id}')"><i class="bi bi-trash me-2"></i>ลบรายชื่อ</a></li>
-                                </ul>
-                            </div>
+                            <button class="btn btn-outline-danger action-btn-pill fw-bold bg-white" onclick="window.updateDebtManually('${esc(d.id)}', 'add')">+ เซ็นเพิ่ม</button>
+                            <button class="btn btn-success action-btn-pill fw-bold" style="background-color: var(--success-color); border:none;" onclick="window.updateDebtManually('${esc(d.id)}', 'pay')">จ่ายหนี้</button>
+                            ${actionMenu(d)}
                         </div>
                     </td>
                 </tr>`;
         }).join('');
 
         cardsContainer.innerHTML = result.map(d => {
-            const balance = d.balance || 0;
-            const deposit = d.deposit || 0;
-            const limit = (d.creditLimit > 0) ? `฿${parseFloat(d.creditLimit).toLocaleString()}` : 'ไม่จำกัด';
-            
+            const balance = d.balance || 0, deposit = d.deposit || 0;
+            const lim = (d.creditLimit > 0) ? `฿${num(d.creditLimit)}` : 'ไม่จำกัด';
             let statusClass = 'card-status-empty';
             if (balance > 0) statusClass = 'card-status-debt';
             else if (deposit > 0) statusClass = 'card-status-deposit';
-            
+
             return `
                 <div class="m-debtor-card ${statusClass}">
                     <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color: #f1f5f9 !important; background-color: #fdfdfd;">
                         <div class="d-flex align-items-center gap-2">
-                            <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold text-white shadow-sm" style="width: 34px; height: 34px; background: linear-gradient(135deg, var(--primary-color), #60a5fa); font-size: 14px;">
-                                ${d.name.charAt(0)}
+                            <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold text-white shadow-sm" aria-hidden="true"
+                                 style="width: 34px; height: 34px; background: linear-gradient(135deg, var(--primary-color), #60a5fa); font-size: 14px;">
+                                ${esc(d.name.charAt(0))}
                             </div>
-                            <h6 class="fw-bold text-dark m-0 fs-6">${d.name}</h6>
+                            <div>
+                                <h3 class="fw-bold text-dark m-0 fs-6">${esc(d.name)}</h3>
+                                ${statusChip(balance, deposit)}
+                            </div>
                         </div>
-                        <div class="dropdown">
-                            <button class="btn btn-light bg-transparent border-0 px-2 py-1 text-muted" type="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-three-dots-vertical fs-5"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm small border-0">
-                                <li><a class="dropdown-item py-2" href="#" onclick="window.viewDebtHistory('${d.id}')"><i class="bi bi-clock-history text-primary me-2"></i>ประวัติบัญชี</a></li>
-                                <li><a class="dropdown-item py-2" href="#" onclick="window.editDebtor('${d.id}')"><i class="bi bi-pencil-square text-warning me-2"></i>แก้ไขข้อมูล</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item py-2 text-danger" href="#" onclick="window.deleteDebtor('${d.id}')"><i class="bi bi-trash me-2"></i>ลบรายชื่อ</a></li>
-                            </ul>
-                        </div>
+                        ${actionMenu(d)}
                     </div>
-                    
                     <div class="p-3 bg-white">
                         <div class="row g-0 text-center">
                             <div class="col-6 border-end px-2" style="border-color: #f1f5f9 !important;">
-                                <div class="text-muted mb-1" style="font-size:11px; letter-spacing: 0.5px;">ยอดค้างชำระ</div>
-                                <div class="fw-bold fs-5" style="color: var(--danger-color);">฿${balance.toLocaleString()}</div>
+                                <div class="text-muted mb-1" style="font-size:11px;">ยอดค้างชำระ</div>
+                                <div class="fw-bold fs-5" style="color: var(--danger-color);">฿${money(balance)}</div>
                             </div>
                             <div class="col-6 px-2">
-                                <div class="text-muted mb-1" style="font-size:11px; letter-spacing: 0.5px;">เงินสแกนเหลือ</div>
-                                <div class="fw-bold fs-5" style="color: var(--success-color);">฿${deposit.toLocaleString()}</div>
+                                <div class="text-muted mb-1" style="font-size:11px;">เงินสแกนเหลือ</div>
+                                <div class="fw-bold fs-5" style="color: var(--success-color);">฿${money(deposit)}</div>
                             </div>
                         </div>
                     </div>
-                    
                     <div class="d-flex justify-content-between align-items-center p-3 border-top" style="border-color: #f1f5f9 !important; background-color: #f8fafc;">
-                        <span class="text-muted small" style="font-size: 11px;">วงเงิน: <b class="text-dark">${limit}</b></span>
+                        <span class="text-muted small" style="font-size: 11px;">วงเงิน: <b class="text-dark">${esc(lim)}</b></span>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-outline-danger action-btn-pill fw-bold bg-white" onclick="window.updateDebtManually('${d.id}', 'add')">
-                                + เซ็นเพิ่ม
-                            </button>
-                            <button class="btn btn-success action-btn-pill fw-bold shadow-sm" style="background-color: var(--success-color); border:none;" onclick="window.updateDebtManually('${d.id}', 'pay')">
-                                จ่ายหนี้
-                            </button>
+                            <button class="btn btn-outline-danger action-btn-pill fw-bold bg-white" onclick="window.updateDebtManually('${esc(d.id)}', 'add')">+ เซ็นเพิ่ม</button>
+                            <button class="btn btn-success action-btn-pill fw-bold shadow-sm" style="background-color: var(--success-color); border:none;" onclick="window.updateDebtManually('${esc(d.id)}', 'pay')">จ่ายหนี้</button>
                         </div>
                     </div>
                 </div>`;
         }).join('');
     };
 
+    window.searchDebtor = () => window.renderDebtors(document.getElementById('debtorSearchInput').value);
+
     window.editDebtor = async (id) => {
         const debtor = debtors.find(d => d.id === id);
         if (!debtor) return;
 
-        const { value: formValues } = await Swal.fire({
+        const { value: v } = await Swal.fire({
             title: 'แก้ไขข้อมูลลูกค้า',
             html: `
-                <div class="text-start mb-3"><label class="small fw-bold text-muted">ชื่อลูกค้า</label><input id="ed-name" class="form-control" value="${debtor.name}"></div>
-                <div class="text-start mb-3"><label class="small fw-bold text-muted">ปรับยอดเงินฝากโดยตรง</label><input id="ed-deposit" type="number" step="0.01" class="form-control" value="${debtor.deposit || 0}"></div>
-                <div class="text-start mb-2"><label class="small fw-bold text-muted">วงเงินเครดิตหนี้ (0 = ไม่จำกัด)</label><input id="ed-limit" type="number" class="form-control" value="${debtor.creditLimit || 0}"></div>
+                <div class="text-start mb-3"><label for="ed-name" class="small fw-bold text-muted">ชื่อลูกค้า</label>
+                    <input id="ed-name" class="form-control" value="${esc(debtor.name)}"></div>
+                <div class="text-start mb-3"><label for="ed-limit" class="small fw-bold text-muted">วงเงินเครดิตหนี้ (0 = ไม่จำกัด)</label>
+                    <input id="ed-limit" type="number" min="0" class="form-control" value="${esc(debtor.creditLimit || 0)}"></div>
+                <div class="alert alert-light border small text-start mb-0">
+                    ยอดหนี้และเงินสแกนแก้ตรงนี้ไม่ได้ ต้องบันทึกผ่านปุ่ม "เซ็นเพิ่ม" หรือ "จ่ายหนี้" เพื่อให้มีรายการรองรับและตรวจสอบย้อนหลังได้
+                </div>
             `,
             showCancelButton: true,
             confirmButtonText: 'บันทึกการแก้ไข',
             confirmButtonColor: '#2563eb',
-            preConfirm: () => ({
-                name: document.getElementById('ed-name').value,
-                deposit: parseFloat(document.getElementById('ed-deposit').value) || 0,
-                creditLimit: parseFloat(document.getElementById('ed-limit').value) || 0
-            })
+            preConfirm: () => {
+                const name = document.getElementById('ed-name').value.trim();
+                if (!name) { Swal.showValidationMessage('กรุณากรอกชื่อลูกค้า'); return false; }
+                return { name, creditLimit: parseFloat(document.getElementById('ed-limit').value) || 0 };
+            }
         });
+        if (!v) return;
 
-        if (formValues) {
-            await updateDoc(doc(db, "debtors", id), formValues);
-            await addDoc(collection(db, "debt_history"), { debtorId: id, type: 'edit_info', amount: 0, note: `แก้ไขข้อมูลลูกค้าเป็น: ${formValues.name} | ปรับเงินฝากเป็น ฿${formValues.deposit}`, timestamp: Date.now(), handledBy: currentUser });
-            Swal.fire({ icon: 'success', title: 'ปรับปรุงข้อมูลแล้ว', timer: 1000, showConfirmButton: false });
-        }
+        return once('edit-' + id, null, async () => {
+            try {
+                const ts = Date.now();
+                const batch = writeBatch(db);
+                batch.update(doc(db, 'debtors', id), { name: v.name, creditLimit: v.creditLimit, updatedAt: ts });
+                batch.set(doc(collection(db, 'debt_history')), {
+                    debtorId: id, type: 'edit_info', amount: 0,
+                    balanceDelta: 0, depositDelta: 0,
+                    balanceAfter: debtor.balance || 0, depositAfter: debtor.deposit || 0,
+                    note: `แก้ไขข้อมูล: ชื่อ "${debtor.name}" → "${v.name}" | วงเงิน ${num(debtor.creditLimit || 0)} → ${num(v.creditLimit)}`,
+                    timestamp: ts, createdAt: ts, handledBy: currentUser, uid: currentUid
+                });
+                await batch.commit();
+                Swal.fire({ icon: 'success', title: 'ปรับปรุงข้อมูลแล้ว', timer: 1200, showConfirmButton: false });
+            } catch (err) {
+                showError('แก้ไขไม่สำเร็จ', err);
+            }
+        });
     };
 
     window.viewDebtHistory = async (id) => {
         const debtor = debtors.find(d => d.id === id);
         if (!debtor) return;
-        
-        Swal.fire({ title: 'กำลังดึงข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-        
-        try {
-            const q = query(collection(db, "debt_history"), where("debtorId", "==", id), orderBy("timestamp", "desc"), limit(50));
-            const querySnapshot = await getDocs(q);
-            
-            let historyHtml = `
-                <div class="table-responsive text-start" style="max-height: 400px; font-size: 0.9rem;">
-                    <table class="table table-hover align-middle">
-                        <thead class="sticky-top bg-white shadow-sm">
-                            <tr class="table-light">
-                                <th class="py-3 ps-2">วันที่/เวลา</th>
-                                <th class="py-3">รายการ</th>
-                                <th class="text-end py-3 pe-2">จำนวน</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
 
-            if (querySnapshot.empty) {
-                historyHtml += `<tr><td colspan="3" class="text-center py-5 text-muted">ยังไม่มีประวัติการทำรายการ</td></tr>`;
+        Swal.fire({ title: 'กำลังดึงข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        try {
+            const q = query(collection(db, 'debt_history'), where('debtorId', '==', id), orderBy('timestamp', 'desc'), limit(50));
+            const snap = await getDocs(q);
+
+            let rows = '';
+            if (snap.empty) {
+                rows = `<tr><td colspan="3" class="text-center py-5 text-muted">ยังไม่มีประวัติการทำรายการ</td></tr>`;
             } else {
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
+                snap.forEach((docSnap) => {
+                    const data = docSnap.data();
                     const d = new Date(data.timestamp);
-                    const dateStr = d.toLocaleDateString('th-TH', {day:'2-digit', month:'short', year:'2-digit'});
-                    const timeStr = d.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
-                    const isAdd = data.type === 'add';
-                    const manager = data.handledBy || 'ไม่ระบุชื่อ';
-                    
-                    historyHtml += `
+                    const dateStr = d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: '2-digit', timeZone: SHOP_TZ });
+                    const timeStr = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: SHOP_TZ });
+
+                    const labels = {
+                        add: 'เซ็นหนี้', pay: 'ชำระ/ฝากเงิน', use_deposit: 'ตัดเงินสแกน',
+                        edit_info: 'แก้ไขข้อมูล', archive_customer: 'ปิดบัญชี'
+                    };
+                    const label = labels[data.type] || 'ระบบ';
+                    const isCharge = data.type === 'add';
+                    const badge = isCharge ? 'bg-danger' : (data.type === 'pay' ? 'bg-success' : 'bg-secondary');
+
+                    // แสดงผลกระทบต่อยอดจริง ไม่ใช่แค่ยอดที่กรอก
+                    let effect = '-';
+                    if (typeof data.balanceDelta === 'number') {
+                        const bd = data.balanceDelta, dd = data.depositDelta || 0;
+                        const parts = [];
+                        if (bd !== 0) parts.push(`<span class="${bd > 0 ? 'text-danger' : 'text-success'}">หนี้ ${bd > 0 ? '+' : ''}${money(bd)}</span>`);
+                        if (dd !== 0) parts.push(`<span class="${dd > 0 ? 'text-success' : 'text-muted'}">สแกน ${dd > 0 ? '+' : ''}${money(dd)}</span>`);
+                        effect = parts.length ? parts.join('<br>') : '<span class="text-muted">ไม่กระทบยอด</span>';
+                    } else if (typeof data.amount === 'number' && data.amount > 0) {
+                        effect = `<span class="text-muted">${money(data.amount)}</span>`;
+                    }
+
+                    const backdated = data.backdated
+                        ? `<div class="text-warning" style="font-size:0.7rem;"><i class="bi bi-exclamation-triangle me-1"></i>บันทึกย้อนหลัง</div>` : '';
+
+                    rows += `
                         <tr>
                             <td class="align-middle border-bottom ps-2" style="line-height: 1.2;">
-                                <b>${dateStr}</b><br><small class="text-muted" style="font-size: 0.75rem;">${timeStr}</small>
+                                <b>${esc(dateStr)}</b><br><small class="text-muted" style="font-size: 0.75rem;">${esc(timeStr)}</small>
+                                ${backdated}
                             </td>
                             <td class="align-middle border-bottom">
-                                <span class="badge ${isAdd ? 'bg-danger text-white' : 'bg-success text-white'} rounded-pill fw-normal" style="font-size: 0.7rem;">
-                                    ${data.type === 'add' ? 'เซ็นหนี้' : data.type === 'pay' ? 'ชำระ/ฝากเงิน' : 'ระบบ'}
-                                </span>
-                                <div class="text-dark small mt-1">${data.note || '-'}</div>
-                                <div class="text-muted mt-1" style="font-size: 0.75rem;"><i class="bi bi-person me-1"></i>${manager}</div>
+                                <span class="badge ${badge} text-white rounded-pill fw-normal" style="font-size: 0.7rem;">${esc(label)}</span>
+                                <div class="text-dark small mt-1">${esc(data.note || '-')}</div>
+                                <div class="text-muted mt-1" style="font-size: 0.75rem;"><i class="bi bi-person me-1" aria-hidden="true"></i>${esc(data.handledBy || 'ไม่ระบุชื่อ')}</div>
                             </td>
-                            <td class="text-end align-middle border-bottom fw-bold pe-2 ${isAdd ? 'text-danger' : 'text-success'}" style="font-size: 1rem;">
-                                ${data.type === 'edit_info' ? '-' : (isAdd ? '+' : '-') + data.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}
-                            </td>
-                        </tr>
-                    `;
+                            <td class="text-end align-middle border-bottom fw-bold pe-2 small">${effect}</td>
+                        </tr>`;
                 });
             }
 
-            historyHtml += `</tbody></table></div>`;
-
             Swal.fire({
-                title: `<h5 class="fw-bold mb-0 text-start">ประวัติ: ${debtor.name}</h5>`,
-                html: historyHtml,
-                width: '500px',
+                title: `<h2 class="fw-bold mb-0 text-start h5">ประวัติ: ${esc(debtor.name)}</h2>`,
+                html: `<div class="table-responsive text-start" style="max-height: 400px; font-size: 0.9rem;">
+                        <table class="table table-hover align-middle">
+                            <thead class="sticky-top bg-white shadow-sm"><tr class="table-light">
+                                <th scope="col" class="py-3 ps-2">วันที่/เวลา</th>
+                                <th scope="col" class="py-3">รายการ</th>
+                                <th scope="col" class="text-end py-3 pe-2">ผลต่อยอด</th>
+                            </tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table></div>`,
+                width: '560px',
                 confirmButtonText: 'ปิด',
                 confirmButtonColor: '#64748b'
             });
-
-        } catch (error) {
-            console.error(error);
-            Swal.fire({ icon: 'error', title: 'ดึงข้อมูลไม่สำเร็จ', text: 'กรุณาตรวจสอบดัชนี Index หรือการเชื่อมต่อ' });
+        } catch (err) {
+            console.error(err);
+            Swal.fire({
+                icon: 'error',
+                title: 'ดึงประวัติไม่สำเร็จ',
+                text: 'กรุณาลองใหม่อีกครั้ง หากยังไม่ได้ให้แจ้งผู้ดูแลระบบ'
+            });
         }
     };
 
-    window.addNewDebtor = async () => {
-        const { value: name } = await Swal.fire({ 
-            title: 'เปิดบัญชีลูกค้าใหม่', 
-            input: 'text', 
-            placeholder: 'ระบุชื่อลูกค้า', 
-            showCancelButton: true, 
+    window.addNewDebtor = () => once('addDebtor', 'btnAddDebtor', async () => {
+        const { value: name } = await Swal.fire({
+            title: 'เปิดบัญชีลูกค้าใหม่',
+            input: 'text',
+            inputLabel: 'ชื่อลูกค้า',
+            inputPlaceholder: 'ระบุชื่อลูกค้า',
+            showCancelButton: true,
             confirmButtonText: 'สร้างบัญชี',
-            confirmButtonColor: '#2563eb'
+            confirmButtonColor: '#2563eb',
+            inputValidator: (v) => (!v || !v.trim()) ? 'กรุณากรอกชื่อลูกค้า' : undefined
         });
-        if (name) {
-            const newDoc = await addDoc(collection(db, "debtors"), { name, balance: 0, deposit: 0, creditLimit: 0, updatedAt: Date.now() });
-            await addDoc(collection(db, "debt_history"), { debtorId: newDoc.id, type: 'add', amount: 0, note: `เปิดบัญชีลูกค้าใหม่ชื่อ: ${name}`, timestamp: Date.now(), handledBy: currentUser });
-        }
-    };
+        if (!name) return;
 
-    window.deleteDebtor = async (id) => {
+        const clean = name.trim();
+        if (debtors.some(d => (d.name || '').trim() === clean && d.status !== 'archived')) {
+            const go = await Swal.fire({
+                title: 'มีชื่อนี้อยู่แล้ว', text: `มีลูกค้าชื่อ "${clean}" ในระบบแล้ว ต้องการสร้างเพิ่มอีกรายหรือไม่?`,
+                icon: 'warning', showCancelButton: true, confirmButtonText: 'สร้างเพิ่ม'
+            });
+            if (!go.isConfirmed) return;
+        }
+
+        try {
+            const ts = Date.now();
+            const ref = doc(collection(db, 'debtors'));
+            const batch = writeBatch(db);
+            batch.set(ref, { name: clean, balance: 0, deposit: 0, creditLimit: 0, status: 'active', createdAt: ts, updatedAt: ts });
+            batch.set(doc(collection(db, 'debt_history')), {
+                debtorId: ref.id, type: 'open_account', amount: 0,
+                balanceDelta: 0, depositDelta: 0, balanceAfter: 0, depositAfter: 0,
+                note: `เปิดบัญชีลูกค้าใหม่: ${clean}`,
+                timestamp: ts, createdAt: ts, handledBy: currentUser, uid: currentUid
+            });
+            await batch.commit();
+            Swal.fire({ icon: 'success', title: 'เปิดบัญชีเรียบร้อย', timer: 1200, showConfirmButton: false });
+        } catch (err) {
+            showError('เปิดบัญชีไม่สำเร็จ', err);
+        }
+    });
+
+    // ปิดบัญชีแทนการลบถาวร เพื่อไม่ให้ประวัติทางบัญชีขาดหาย
+    window.archiveDebtor = async (id) => {
         const debtor = debtors.find(d => d.id === id);
-        if(!debtor) return;
+        if (!debtor) return;
 
-        if((await Swal.fire({ title:`ลบรายชื่อคุณ ${debtor.name}?`, text: "ข้อมูลหนี้สินและเงินฝากทั้งหมดของรายนี้จะถูกลบ", icon:'warning', showCancelButton:true, confirmButtonColor: '#ef4444', confirmButtonText: 'ลบทิ้ง' })).isConfirmed) {
-            await addDoc(collection(db, "debt_history"), { debtorId: "SYSTEM_DELETED", type: 'delete_customer', amount: debtor.balance, note: `ลบลูกค้า: ${debtor.name} (หนี้เก่า ฿${debtor.balance} | เงินฝากเก่า ฿${debtor.deposit || 0})`, timestamp: Date.now(), handledBy: currentUser });
-            await deleteDoc(doc(db, "debtors", id));
-            Swal.fire('ลบเรียบร้อย', '', 'success');
+        if ((debtor.balance || 0) !== 0 || (debtor.deposit || 0) !== 0) {
+            Swal.fire('ปิดบัญชีไม่ได้',
+                `คุณ ${debtor.name} ยังมียอดค้าง ฿${money(debtor.balance)} และเงินสแกนเหลือ ฿${money(debtor.deposit)} กรุณาเคลียร์ยอดให้เป็นศูนย์ก่อน`,
+                'warning');
+            return;
         }
+
+        const ok = (await Swal.fire({
+            // title ของ SweetAlert2 รองรับ HTML จึงต้อง escape ชื่อที่ผู้ใช้ตั้งเอง
+            title: `ปิดบัญชีคุณ ${esc(debtor.name)}?`,
+            text: 'ประวัติทั้งหมดจะถูกเก็บไว้ แต่รายชื่อจะไม่แสดงในรายการปกติ',
+            icon: 'warning', showCancelButton: true,
+            confirmButtonColor: '#ef4444', confirmButtonText: 'ปิดบัญชี', cancelButtonText: 'ยกเลิก'
+        })).isConfirmed;
+        if (!ok) return;
+
+        return once('archive-' + id, null, async () => {
+            try {
+                const ts = Date.now();
+                const batch = writeBatch(db);
+                batch.update(doc(db, 'debtors', id), { status: 'archived', archivedAt: ts, updatedAt: ts });
+                batch.set(doc(collection(db, 'debt_history')), {
+                    debtorId: id, type: 'archive_customer', amount: 0,
+                    balanceDelta: 0, depositDelta: 0, balanceAfter: 0, depositAfter: 0,
+                    note: `ปิดบัญชีลูกค้า: ${debtor.name}`,
+                    timestamp: ts, createdAt: ts, handledBy: currentUser, uid: currentUid
+                });
+                await batch.commit();
+                Swal.fire('ปิดบัญชีเรียบร้อย', 'ดูรายชื่อที่ปิดแล้วได้จากตัวกรอง "เฉพาะบัญชีที่ปิดแล้ว"', 'success');
+            } catch (err) {
+                showError('ปิดบัญชีไม่สำเร็จ', err);
+            }
+        });
     };
 
-    window.searchDebtor = () => { window.renderDebtors(document.getElementById('debtorSearchInput').value); };
+    window.exportDebtorsToExcel = () => {
+        const sortEl = document.getElementById('debtorSortFilter');
+        const list = debtors.filter(d => d && d.name && d.status !== 'archived');
+        if (!list.length) {
+            Swal.fire('ไม่พบข้อมูล', 'ไม่มีข้อมูลลูกหนี้สำหรับส่งออก', 'warning');
+            return;
+        }
 
-    // --- ส่วนบริการจัดการคลัง และออกบิล ---
+        const rows = list.map((d, i) => ({
+            'ลำดับ': i + 1,
+            'ชื่อลูกค้า': d.name,
+            'ยอดหนี้ค้างชำระ (บาท)': d.balance || 0,
+            'เงินสแกนคงเหลือ (บาท)': d.deposit || 0,
+            'วงเงินเครดิต': d.creditLimit > 0 ? d.creditLimit : 'ไม่จำกัด',
+            'อัปเดตล่าสุด': d.updatedAt ? new Date(d.updatedAt).toLocaleString('th-TH', { timeZone: SHOP_TZ }) : '-'
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(rows);
+        ws['!cols'] = [{ wch: 8 }, { wch: 25 }, { wch: 22 }, { wch: 22 }, { wch: 15 }, { wch: 22 }];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'ลูกหนี้และเงินสแกน');
+        XLSX.writeFile(wb, `บัญชีลูกหนี้_${dayKey(Date.now())}.xlsx`);
+        Swal.fire({ icon: 'success', title: 'ส่งออกข้อมูลสำเร็จ', timer: 1800, showConfirmButton: false });
+    };
+
+    // =========================================================
+    // จัดการสินค้า
+    // =========================================================
+
     window.renderManageProducts = (type) => {
         const list = document.getElementById(type === 'pos' ? 'managePOSList' : 'manageStockList');
-        let arr = type === 'pos' ? posProducts : stockProducts;
-        
-        let catFilter = document.getElementById(type === 'pos' ? 'posCategoryFilter' : 'stockCategoryFilter');
+        const arr  = (type === 'pos' ? posProducts : stockProducts).filter(p => p && p.name);
+
+        const catFilter = document.getElementById(type === 'pos' ? 'posCategoryFilter' : 'stockCategoryFilter');
         if (catFilter) {
-            const uniqueCats = [...new Set(arr.map(item => item.category || 'ทั่วไป'))].sort();
-            let currentSelection = catFilter.value;
-            let catOptions = `<option value="">ทั้งหมด</option>`;
-            uniqueCats.forEach(c => {
-                catOptions += `<option value="${c}" ${currentSelection === c ? 'selected' : ''}>${c}</option>`;
-            });
-            catFilter.innerHTML = catOptions;
+            const uniqueCats = [...new Set(arr.map(i => i.category || 'ทั่วไป'))].sort();
+            const keep = catFilter.value;
+            // สร้างใหม่เฉพาะเมื่อรายการหมวดหมู่เปลี่ยนจริง ลดการกระพริบระหว่างพิมพ์
+            const signature = uniqueCats.join('|');
+            if (catFilter.dataset.signature !== signature) {
+                catFilter.innerHTML = `<option value="">ทั้งหมด</option>` +
+                    uniqueCats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+                catFilter.dataset.signature = signature;
+                if (uniqueCats.includes(keep)) catFilter.value = keep;
+            }
         }
 
-        let searchInput = document.getElementById(type === 'pos' ? 'managePosSearchInput' : 'stockSearchInput');
-        let searchTerm = searchInput && searchInput.value ? searchInput.value.toLowerCase() : "";
-        let selectedCat = catFilter && catFilter.value ? catFilter.value : "";
+        const searchEl = document.getElementById(type === 'pos' ? 'managePosSearchInput' : 'stockSearchInput');
+        const term = searchEl && searchEl.value ? searchEl.value.toLowerCase() : '';
+        const cat  = catFilter && catFilter.value ? catFilter.value : '';
 
-        let displayArr = [...arr];
+        let display = [...arr];
+        if (term) display = display.filter(p => p.name.toLowerCase().includes(term));
+        if (cat)  display = display.filter(p => (p.category || 'ทั่วไป') === cat);
+        display.sort((a, b) => a.name.localeCompare(b.name, 'th'));
 
-        if (searchTerm) {
-            displayArr = displayArr.filter(p => p.name.toLowerCase().includes(searchTerm));
-        }
-        if (selectedCat) {
-            displayArr = displayArr.filter(p => (p.category || 'ทั่วไป') === selectedCat);
-        }
+        const countEl = document.getElementById(type === 'pos' ? 'posTotalCount' : 'stockTotalCount');
+        if (countEl) countEl.innerText = display.length;
 
-        displayArr.sort((a, b) => a.name.localeCompare(b.name, 'th'));
-
-        let countEl = document.getElementById(type === 'pos' ? 'posTotalCount' : 'stockTotalCount');
-        if (countEl) countEl.innerText = displayArr.length;
-
-        if (displayArr.length === 0) {
+        if (!display.length) {
             list.innerHTML = `<tr><td colspan="4" class="text-center py-5 text-muted border-bottom">ไม่พบข้อมูลสินค้า</td></tr>`;
             return;
         }
 
-        list.innerHTML = displayArr.map(p => `
+        list.innerHTML = display.map(p => `
             <tr>
-                <td class="ps-4 py-3 border-bottom"><b class="text-dark">${p.name}</b></td>
-                <td class="border-bottom"><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1 rounded-pill">${p.category || 'ทั่วไป'}</span></td>
-                <td class="text-center fw-bold border-bottom ${type==='pos' ? 'text-danger' : 'text-primary'}">${type==='pos' ? '฿'+(p.price||0).toFixed(2) : (p.defaultUnit || 'ชิ้น')}</td>
+                <td class="ps-4 py-3 border-bottom"><b class="text-dark">${esc(p.name)}</b></td>
+                <td class="border-bottom"><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1 rounded-pill">${esc(p.category || 'ทั่วไป')}</span></td>
+                <td class="text-center fw-bold border-bottom ${type === 'pos' ? 'text-danger' : 'text-primary'}">${type === 'pos' ? '฿' + money(p.price) : esc(p.defaultUnit || 'ชิ้น')}</td>
                 <td class="text-center pe-4 border-bottom">
                     <div class="btn-group shadow-sm">
-                        <button class="btn btn-sm btn-light border text-primary px-3" onclick="window.editProduct('${p.id}', '${type}')"><i class="bi bi-pencil-square"></i></button>
-                        <button class="btn btn-sm btn-light border text-danger px-3" onclick="window.deleteProduct('${p.id}','${type}')"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-sm btn-light border text-primary px-3" aria-label="แก้ไข ${esc(p.name)}" onclick="window.editProduct('${esc(p.id)}', '${esc(type)}')"><i class="bi bi-pencil-square" aria-hidden="true"></i></button>
+                        <button class="btn btn-sm btn-light border text-danger px-3" data-admin-only aria-label="ลบ ${esc(p.name)}" onclick="window.deleteProduct('${esc(p.id)}','${esc(type)}')"><i class="bi bi-trash" aria-hidden="true"></i></button>
                     </div>
                 </td>
             </tr>`).join('');
+
+        applyRoleVisibility();
     };
 
     window.editProduct = async (id, type) => {
@@ -1354,116 +1709,205 @@
         const p = arr.find(x => x.id === id);
         if (!p) return;
 
-        let htmlInput = `
-            <div class="mb-3 text-start"><label class="small fw-bold text-muted">ชื่อสินค้า</label><input id="edit-name" class="form-control" value="${p.name}"></div>
-            <div class="mb-3 text-start"><label class="small fw-bold text-muted">หมวดหมู่</label><input id="edit-cat" class="form-control" value="${p.category || ''}" list="categoryList"></div>`;
+        let html = `
+            <div class="mb-3 text-start"><label for="edit-name" class="small fw-bold text-muted">ชื่อสินค้า</label>
+                <input id="edit-name" class="form-control" value="${esc(p.name)}"></div>
+            <div class="mb-3 text-start"><label for="edit-cat" class="small fw-bold text-muted">หมวดหมู่</label>
+                <input id="edit-cat" class="form-control" value="${esc(p.category || '')}" list="categoryList"></div>`;
+        html += (type === 'pos')
+            ? `<div class="mb-2 text-start"><label for="edit-price" class="small fw-bold text-muted">ราคาขาย (บาท)</label>
+                   <input id="edit-price" type="number" min="0" step="0.01" class="form-control" value="${esc(p.price || 0)}"></div>`
+            : `<div class="mb-2 text-start"><label for="edit-unit" class="small fw-bold text-muted">หน่วยเริ่มต้น</label>
+                   <input id="edit-unit" class="form-control" value="${esc(p.defaultUnit || 'ชิ้น')}"></div>`;
 
-        if (type === 'pos') {
-            htmlInput += `<div class="mb-2 text-start"><label class="small fw-bold text-muted">ราคาขาย (บาท)</label><input id="edit-price" type="number" step="0.01" class="form-control" value="${p.price || 0}"></div>`;
-        } else {
-            htmlInput += `<div class="mb-2 text-start"><label class="small fw-bold text-muted">หน่วยเริ่มต้น</label><input id="edit-unit" class="form-control" value="${p.defaultUnit || 'ชิ้น'}"></div>`;
-        }
-
-        const { value: formValues } = await Swal.fire({
-            title: 'แก้ไขข้อมูลสินค้า',
-            html: htmlInput,
-            showCancelButton: true,
-            confirmButtonText: 'บันทึกการแก้ไข',
-            confirmButtonColor: '#2563eb',
+        const { value: v } = await Swal.fire({
+            title: 'แก้ไขข้อมูลสินค้า', html,
+            showCancelButton: true, confirmButtonText: 'บันทึกการแก้ไข', confirmButtonColor: '#2563eb',
             preConfirm: () => {
-                const data = { name: document.getElementById('edit-name').value, category: document.getElementById('edit-cat').value };
-                if (type === 'pos') data.price = parseFloat(document.getElementById('edit-price').value) || 0;
-                else data.defaultUnit = document.getElementById('edit-unit').value || 'ชิ้น';
+                const name = document.getElementById('edit-name').value.trim();
+                if (!name) { Swal.showValidationMessage('กรุณากรอกชื่อสินค้า'); return false; }
+                const data = { name, category: document.getElementById('edit-cat').value.trim() || 'ทั่วไป' };
+                if (type === 'pos') {
+                    const price = parseFloat(document.getElementById('edit-price').value);
+                    if (!Number.isFinite(price) || price < 0) { Swal.showValidationMessage('ราคาต้องเป็นตัวเลขไม่ติดลบ'); return false; }
+                    data.price = price;
+                } else {
+                    data.defaultUnit = document.getElementById('edit-unit').value.trim() || 'ชิ้น';
+                }
                 return data;
             }
         });
+        if (!v) return;
 
-        if (formValues) {
-            await updateDoc(doc(db, type === 'pos' ? "products" : "stock_products", id), formValues);
-            Swal.fire({ icon:'success', title:'บันทึกแล้ว', timer:1000, showConfirmButton:false });
-        }
+        return once('editProduct-' + id, null, async () => {
+            try {
+                await updateDoc(doc(db, type === 'pos' ? 'products' : 'stock_products', id), v);
+                Swal.fire({ icon: 'success', title: 'บันทึกแล้ว', timer: 1000, showConfirmButton: false });
+            } catch (err) { showError('บันทึกไม่สำเร็จ', err); }
+        });
     };
 
-    window.saveSingleProduct = async (type) => {
-        const name = document.getElementById(`${type}-add-name`).value;
-        const cat = document.getElementById(`${type}-add-cat`).value;
-        const data = { name, category: cat || 'ทั่วไป' };
-        if (type === 'pos') data.price = parseFloat(document.getElementById('pos-add-price').value) || 0;
-        else data.defaultUnit = document.getElementById('stock-add-unit').value || 'ชิ้น';
-        
-        await addDoc(collection(db, type === 'pos' ? "products" : "stock_products"), data);
-        document.getElementById(`${type}-add-name`).value = '';
-        Swal.fire({ icon:'success', title:'เพิ่มสินค้าแล้ว', timer:1000, showConfirmButton:false });
-    };
+    window.saveSingleProduct = (type) => once('addProduct-' + type, 'btnAddPosProduct', async () => {
+        // รองรับเฉพาะหน้า POS เท่านั้น หน้าคลังบิลใช้ฟอร์มเพิ่มทีละหลายรายการ
+        if (type !== 'pos') return;
+
+        const name  = document.getElementById('pos-add-name').value.trim();
+        const cat   = document.getElementById('pos-add-cat').value.trim();
+        const price = parseFloat(document.getElementById('pos-add-price').value);
+
+        if (!name) { Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอกชื่อสินค้า', 'warning'); return; }
+        if (!Number.isFinite(price) || price < 0) { Swal.fire('ราคาไม่ถูกต้อง', 'กรุณากรอกราคาเป็นตัวเลขไม่ติดลบ', 'warning'); return; }
+
+        try {
+            await addDoc(collection(db, 'products'), {
+                name, category: cat || 'ทั่วไป', price, createdAt: Date.now()
+            });
+            document.getElementById('pos-add-name').value  = '';
+            document.getElementById('pos-add-price').value = '';
+            document.getElementById('pos-add-name').focus();
+            Swal.fire({ icon: 'success', title: 'เพิ่มสินค้าแล้ว', timer: 1000, showConfirmButton: false });
+        } catch (err) { showError('เพิ่มสินค้าไม่สำเร็จ', err); }
+    });
 
     window.deleteProduct = async (id, type) => {
-        if((await Swal.fire({ title:'ยืนยันการลบสินค้า?', icon:'warning', showCancelButton:true, confirmButtonColor: '#ef4444' })).isConfirmed)
-            await deleteDoc(doc(db, type === 'pos' ? "products" : "stock_products", id));
+        const arr = type === 'pos' ? posProducts : stockProducts;
+        const p = arr.find(x => x.id === id);
+        if (!p) return;
+        const ok = (await Swal.fire({
+            title: `ลบสินค้า "${esc(p.name)}"?`, icon: 'warning',
+            showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก'
+        })).isConfirmed;
+        if (!ok) return;
+        try {
+            await deleteDoc(doc(db, type === 'pos' ? 'products' : 'stock_products', id));
+        } catch (err) { showError('ลบไม่สำเร็จ', err); }
     };
 
-    window.exportDebtorsToExcel = () => {
-        if (!debtors || debtors.length === 0) {
-            Swal.fire('ไม่พบข้อมูล', 'ไม่มีข้อมูลลูกหนี้สำหรับส่งออก', 'warning');
+    window.renderBatchInputFields = () => {
+        const container = document.getElementById('batch-add-stock-body');
+        if (!container) return;
+        let html = '';
+        for (let i = 0; i < 5; i++) {
+            html += `
+                <tr>
+                    <td class="ps-0 py-2"><label class="visually-hidden" for="batch-name-${i}">ชื่อสินค้าแถวที่ ${i + 1}</label>
+                        <input id="batch-name-${i}" class="form-control batch-name" placeholder="ชื่อสินค้า ${i + 1}"></td>
+                    <td class="py-2"><label class="visually-hidden" for="batch-cat-${i}">หมวดหมู่แถวที่ ${i + 1}</label>
+                        <input id="batch-cat-${i}" class="form-control batch-cat" placeholder="หมวดหมู่" list="categoryList"></td>
+                    <td class="py-2"><label class="visually-hidden" for="batch-unit-${i}">หน่วยแถวที่ ${i + 1}</label>
+                        <input id="batch-unit-${i}" class="form-control batch-unit" placeholder="หน่วย"></td>
+                    <td class="text-center py-2"><i class="bi bi-layers text-light" aria-hidden="true"></i></td>
+                </tr>`;
+        }
+        container.innerHTML = html;
+    };
+    window.renderBatchInputFields();   // เดิมหน่วงด้วย setTimeout 1 วินาที ทำให้ตารางว่างชั่วคราว
+
+    window.saveBatchProducts = () => once('batchProducts', 'btnSaveBatch', async () => {
+        const names = [...document.querySelectorAll('.batch-name')];
+        const cats  = [...document.querySelectorAll('.batch-cat')];
+        const units = [...document.querySelectorAll('.batch-unit')];
+
+        const rows = [];
+        names.forEach((el, i) => {
+            const name = el.value.trim();
+            if (name) rows.push({
+                name,
+                category: cats[i].value.trim() || 'ทั่วไป',
+                defaultUnit: units[i].value.trim() || 'ชิ้น',
+                createdAt: Date.now()
+            });
+        });
+
+        if (!rows.length) { Swal.fire('กรุณากรอกข้อมูล', 'ต้องมีอย่างน้อย 1 รายการ', 'warning'); return; }
+
+        try {
+            const batch = writeBatch(db);
+            rows.forEach(r => batch.set(doc(collection(db, 'stock_products')), r));
+            await batch.commit();
+            names.forEach(el => el.value = '');
+            cats.forEach(el => el.value = '');
+            units.forEach(el => el.value = '');
+            Swal.fire({ icon: 'success', title: `เพิ่มสินค้า ${rows.length} รายการเรียบร้อย`, timer: 1500, showConfirmButton: false });
+        } catch (err) { showError('บันทึกไม่สำเร็จ', err); }
+    });
+
+    // =========================================================
+    // ออกบิล
+    // =========================================================
+
+    window.renderOrderProducts = () => {
+        const list = document.getElementById('orderProductList');
+        const sorted = [...stockProducts].filter(p => p && p.name).sort((a, b) => a.name.localeCompare(b.name, 'th'));
+
+        if (!sorted.length) {
+            list.innerHTML = `<tr><td class="text-center text-muted py-5">ยังไม่มีสินค้าในคลังบิล</td></tr>`;
             return;
         }
 
-        const excelData = debtors.map((d, index) => {
-            return {
-                "ลำดับ": index + 1,
-                "ชื่อลูกค้า": d.name,
-                "ยอดหนี้ค้างชำระ (บาท)": d.balance || 0,
-                "ยอดเงินฝากคงเหลือ (บาท)": d.deposit || 0,
-                "วงเงินเครดิต": d.creditLimit > 0 ? d.creditLimit : "ไม่จำกัด",
-                "อัปเดตล่าสุด": d.updatedAt ? new Date(d.updatedAt).toLocaleString('th-TH') : '-'
-            };
-        });
-
-        const worksheet = XLSX.utils.json_to_sheet(excelData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "รายชื่อลูกหนี้และเงินฝาก");
-
-        worksheet['!cols'] = [ { wch: 8 }, { wch: 25 }, { wch: 22 }, { wch: 22 }, { wch: 15 }, { wch: 20 } ];
-
-        const dateStr = new Date().toISOString().split('T')[0];
-        XLSX.writeFile(workbook, `บัญชีลูกหนี้และเงินฝาก_${dateStr}.xlsx`);
-        
-        Swal.fire({ icon: 'success', title: 'ส่งออกข้อมูลสำเร็จ!', timer: 2000, showConfirmButton: false });
-    };
-    
-    // Helper function สำหรับหน้าจอออกบิล
-    window.renderOrderProducts = () => {
-        const list = document.getElementById('orderProductList');
-        
-        const sortedStock = [...stockProducts].sort((a, b) => a.name.localeCompare(b.name, 'th'));
-        
-        const grouped = sortedStock.reduce((acc, p) => {
+        const grouped = sorted.reduce((acc, p) => {
             const cat = p.category || 'ทั่วไป';
-            if (!acc[cat]) acc[cat] = [];
-            acc[cat].push(p);
+            (acc[cat] = acc[cat] || []).push(p);
             return acc;
         }, {});
 
         let html = '';
-        const sortedCategories = Object.keys(grouped).sort();
-        
-        for (const category of sortedCategories) {
-            html += `<tr><td colspan="4" class="py-2 ps-3 fw-bold text-primary bg-light border-bottom border-top">${category}</td></tr>`;
+        Object.keys(grouped).sort().forEach(category => {
+            html += `<tr class="order-group" data-cat="${esc(category.toLowerCase())}"><td colspan="4" class="py-2 ps-3 fw-bold text-primary bg-light border-bottom border-top">${esc(category)}</td></tr>`;
             grouped[category].forEach(p => {
                 const unit = p.defaultUnit || 'ชิ้น';
                 html += `
-                    <tr>
-                        <td class="ps-3 fw-bold border-bottom">${p.name}</td>
+                    <tr class="order-row" data-cat="${esc(category.toLowerCase())}" data-name="${esc(p.name.toLowerCase())}">
+                        <td class="ps-3 fw-bold border-bottom">${esc(p.name)}</td>
                         <td class="border-bottom">
-                            <select id="u-${p.id}" class="form-select form-select-sm bg-light">
-                                <option value="${unit}">${unit}</option><option value="ชิ้น">ชิ้น</option><option value="ลัง">ลัง</option><option value="แพ็ค">แพ็ค</option><option value="โหล">โหล</option><option value="ถุง">ถุง</option>
+                            <label class="visually-hidden" for="u-${esc(p.id)}">หน่วยของ ${esc(p.name)}</label>
+                            <select id="u-${esc(p.id)}" class="form-select form-select-sm bg-light">
+                                <option value="${esc(unit)}">${esc(unit)}</option>
+                                <option value="ชิ้น">ชิ้น</option><option value="ลัง">ลัง</option><option value="แพ็ค">แพ็ค</option>
+                                <option value="โหล">โหล</option><option value="ถุง">ถุง</option>
                             </select>
                         </td>
-                        <td class="border-bottom"><input type="number" id="q-${p.id}" class="form-control form-control-sm text-center bg-light" value="1" style="width:55px"></td>
-                        <td class="text-center pe-3 border-bottom"><button class="btn btn-sm btn-primary rounded-pill px-3" onclick="window.addToOrderAndReset('${p.id}')"><i class="bi bi-plus-lg"></i></button></td>
+                        <td class="border-bottom">
+                            <label class="visually-hidden" for="q-${esc(p.id)}">จำนวนของ ${esc(p.name)}</label>
+                            <input type="number" min="1" step="1" id="q-${esc(p.id)}" class="form-control form-control-sm text-center bg-light" value="1" style="width:60px">
+                        </td>
+                        <td class="text-center pe-3 border-bottom">
+                            <button class="btn btn-sm btn-primary rounded-pill px-3" aria-label="เพิ่ม ${esc(p.name)} ลงบิล" onclick="window.addToOrderAndReset('${esc(p.id)}')"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                        </td>
                     </tr>`;
             });
-        }
+        });
         list.innerHTML = html;
+        window.searchOrderProduct();
+    };
+
+    window.searchOrderProduct = () => {
+        const f = document.getElementById('orderSearchInput').value.toLowerCase();
+        const visibleCats = new Set();
+
+        document.querySelectorAll('#orderProductList .order-row').forEach(r => {
+            const hit = !f || (r.dataset.name || '').includes(f) || (r.dataset.cat || '').includes(f);
+            r.style.display = hit ? '' : 'none';
+            if (hit) visibleCats.add(r.dataset.cat);
+        });
+        // ซ่อนหัวข้อหมวดหมู่ที่ไม่มีสินค้าเหลืออยู่ แทนที่จะปล่อยให้ค้างหรือหายผิดจุด
+        document.querySelectorAll('#orderProductList .order-group').forEach(g => {
+            g.style.display = visibleCats.has(g.dataset.cat) ? '' : 'none';
+        });
+    };
+
+    window.addToOrder = (id) => {
+        const p = stockProducts.find(x => x.id === id);
+        if (!p) return;
+        const qtyEl = document.getElementById(`q-${id}`);
+        const unitEl = document.getElementById(`u-${id}`);
+        const qty = Math.max(1, parseInt(qtyEl ? qtyEl.value : '1', 10) || 1);
+        orderItems.push({
+            id: p.id, name: p.name, category: p.category || 'ทั่วไป',
+            qty, unit: unitEl ? unitEl.value : (p.defaultUnit || 'ชิ้น'),
+            orderItemId: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+        });
+        window.renderInvoice();
     };
 
     window.addToOrderAndReset = (id) => {
@@ -1472,98 +1916,184 @@
         if (qtyInput) qtyInput.value = 1;
     };
 
-    window.searchOrderProduct = () => {
-        const filter = document.getElementById('orderSearchInput').value.toLowerCase();
-        document.querySelectorAll('#orderProductList tr').forEach(r => {
-            r.style.display = r.innerText.toLowerCase().includes(filter) ? '' : 'none';
-        });
-    };
-
-    window.addToOrder = (id) => {
-        const p = stockProducts.find(x => x.id === id);
-        if(!p) return;
-        const qty = parseInt(document.getElementById(`q-${id}`).value) || 1;
-        const unit = document.getElementById(`u-${id}`).value;
-        orderItems.push({ ...p, qty, unit, orderItemId: Date.now() + Math.random() });
+    window.removeFromOrder = (tid) => {
+        orderItems = orderItems.filter(x => String(x.orderItemId) !== String(tid));
         window.renderInvoice();
     };
 
     window.renderInvoice = () => {
         const list = document.getElementById('invoiceList');
+        const notice = document.getElementById('billEditingNotice');
+
+        if (editingBillId) {
+            notice.classList.remove('d-none');
+            document.getElementById('billEditingId').innerText = `(รหัส ${editingBillId.slice(0, 6)})`;
+            document.getElementById('btnSaveBillText').innerText = 'อัปเดตบิลนี้';
+        } else {
+            notice.classList.add('d-none');
+            document.getElementById('btnSaveBillText').innerText = 'บันทึกบิล';
+        }
+
         if (!orderItems.length) {
             list.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted border-bottom">ยังไม่เลือกสินค้า</td></tr>';
             document.getElementById('totalItemsSelected').innerText = 0;
+            document.getElementById('orderIdDisplay').innerText = '#Auto';
             return;
         }
+
         document.getElementById('totalItemsSelected').innerText = orderItems.length;
-        document.getElementById('orderIdDisplay').innerText = "#ORD-" + Date.now().toString().slice(-6);
+        document.getElementById('orderIdDisplay').innerText =
+            editingBillId ? '#' + editingBillId.slice(0, 6).toUpperCase() : '#ORD-' + String(Date.now()).slice(-6);
+
         list.innerHTML = orderItems.map((i, idx) => `
-            <tr><td class="text-center text-muted small border-bottom py-3">${idx + 1}</td>
-                <td class="fw-bold border-bottom">${i.name}</td><td class="text-center fw-bold text-primary border-bottom">${i.qty}</td><td class="text-center text-secondary border-bottom">${i.unit}</td>
-                <td class="exclude-print text-center border-bottom"><button class="btn btn-sm text-danger p-0 bg-transparent border-0" onclick="window.removeFromOrder(${i.orderItemId})"><i class="bi bi-x-circle-fill fs-5"></i></button></td>
-                <td class="only-print table-cell border-bottom"></td></tr>`).join('');
+            <tr>
+                <td class="text-center text-muted small border-bottom py-3">${idx + 1}</td>
+                <td class="fw-bold border-bottom">${esc(i.name)}</td>
+                <td class="text-center fw-bold text-primary border-bottom">${esc(i.qty)}</td>
+                <td class="text-center text-secondary border-bottom">${esc(i.unit)}</td>
+                <td class="exclude-print text-center border-bottom">
+                    <button class="btn btn-sm text-danger p-0 bg-transparent border-0" aria-label="ลบ ${esc(i.name)} ออกจากบิล" onclick="window.removeFromOrder('${esc(i.orderItemId)}')"><i class="bi bi-x-circle-fill fs-5" aria-hidden="true"></i></button>
+                </td>
+                <td class="only-print table-cell border-bottom"></td>
+            </tr>`).join('');
     };
-    
+
     window.clearInvoice = () => {
         orderItems = [];
+        editingBillId = null;
         window.renderInvoice();
-    }
-
-    window.removeFromOrder = (tid) => { orderItems = orderItems.filter(x => x.orderItemId !== tid); window.renderInvoice(); };
-    window.saveBillToDB = async () => {
-        if (!orderItems.length) return;
-        await addDoc(collection(db, "bills"), { timestamp: Date.now(), dateString: new Date().toLocaleDateString('th-TH'), items: orderItems, handledBy: currentUser });
-        orderItems = []; window.renderInvoice();
-        Swal.fire('สำเร็จ', 'บันทึกบิลแล้ว', 'success');
     };
+
+    window.saveBillToDB = () => once('saveBill', 'btnSaveBill', async () => {
+        if (!orderItems.length) { Swal.fire('บิลว่าง', 'กรุณาเลือกสินค้าก่อน', 'info'); return; }
+        const ts = Date.now();
+        try {
+            if (editingBillId) {
+                // แก้ไขบิลเดิม ไม่สร้างใบใหม่ซ้ำ
+                await updateDoc(doc(db, 'bills', editingBillId), {
+                    items: orderItems, updatedAt: ts, updatedBy: currentUser
+                });
+                Swal.fire('อัปเดตแล้ว', 'บันทึกการแก้ไขบิลเดิมเรียบร้อย', 'success');
+            } else {
+                await addDoc(collection(db, 'bills'), {
+                    timestamp: ts,
+                    dateString: new Date(ts).toLocaleDateString('th-TH', { timeZone: SHOP_TZ }),
+                    items: orderItems,
+                    handledBy: currentUser, uid: currentUid
+                });
+                Swal.fire('สำเร็จ', 'บันทึกบิลใหม่แล้ว', 'success');
+            }
+            orderItems = [];
+            editingBillId = null;
+            window.renderInvoice();
+        } catch (err) { showError('บันทึกบิลไม่สำเร็จ', err); }
+    });
 
     window.viewBillDetail = (billId) => {
         const bill = billsHistory.find(b => b.id === billId);
-        if (bill) {
-            orderItems = bill.items.map(item => ({ ...item, orderItemId: Date.now() + Math.random() }));
-            window.switchPage('page-order', document.querySelector('[onclick*="page-order"]'));
-            window.renderInvoice();
-        }
+        if (!bill) return;
+        orderItems = (bill.items || []).map(item => ({
+            ...item,
+            orderItemId: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+        }));
+        editingBillId = billId;      // ทำให้ปุ่มบันทึกอัปเดตใบเดิม แทนการสร้างซ้ำ
+        window.switchPage('page-order', document.querySelector('#mainNav [onclick*="page-order"]'));
+        window.renderInvoice();
     };
 
-    window.renderSalesSummary = () => {
-        const type = document.getElementById('summaryType').value;
-        const dateVal = document.getElementById('summaryDate').value;
-        const monthVal = document.getElementById('summaryMonth').value;
-        let filtered = posSalesHistory;
-        if (type === 'daily' && dateVal) filtered = posSalesHistory.filter(s => new Date(s.timestamp).toISOString().split('T')[0] === dateVal);
-        if (type === 'monthly' && monthVal) filtered = posSalesHistory.filter(s => new Date(s.timestamp).toISOString().substring(0, 7) === monthVal);
-
-        let total = 0, cash = 0, credit = 0;
-        document.getElementById('posHistoryList').innerHTML = filtered.map(s => {
-            total += s.totalAmount;
-            if(s.paymentMethod === 'credit') credit += s.totalAmount; else cash += s.totalAmount;
-            return `<tr><td class="ps-3 py-3 border-bottom">${new Date(s.timestamp).toLocaleTimeString('th-TH')}</td>
-                <td class="border-bottom"><span class="badge bg-${s.paymentMethod==='cash'?'success':'warning'} rounded-pill px-3">${s.paymentMethod==='cash'?'เงินสด':'เซ็น'}</span> <small class="text-muted ms-2 d-none d-sm-inline"><i class="bi bi-person me-1"></i>${s.handledBy || 'ไม่ระบุ'}</small></td>
-                <td class="fw-bold text-end pe-3 py-3 border-bottom text-dark">฿${s.totalAmount.toLocaleString()}</td></tr>`;
-        }).join('');
-        document.getElementById('todayTotal').innerText = `฿${total.toLocaleString()}`;
-        document.getElementById('todayCash').innerText = `฿${cash.toLocaleString()}`;
-        document.getElementById('todayCredit').innerText = `฿${credit.toLocaleString()}`;
+    window.deleteBill = async (id) => {
+        const ok = (await Swal.fire({
+            title: 'ลบประวัติบิล?', text: 'ข้อมูลนี้จะไม่สามารถกู้คืนได้',
+            icon: 'warning', showCancelButton: true,
+            confirmButtonColor: '#ef4444', confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก'
+        })).isConfirmed;
+        if (!ok) return;
+        try {
+            await deleteDoc(doc(db, 'bills', id));
+            if (editingBillId === id) window.clearInvoice();
+        } catch (err) { showError('ลบไม่สำเร็จ', err); }
     };
 
     window.renderHistory = () => {
         const list = document.getElementById('historyList');
-        if (billsHistory.length === 0) { list.innerHTML = '<tr><td colspan="3" class="text-center py-5 text-muted border-bottom">ไม่พบข้อมูลบิล</td></tr>'; return; }
+        if (!billsHistory.length) {
+            list.innerHTML = '<tr><td colspan="3" class="text-center py-5 text-muted border-bottom">ไม่พบข้อมูลบิล</td></tr>';
+            return;
+        }
         list.innerHTML = billsHistory.map(b => `
-            <tr><td class="ps-3 py-3 border-bottom"><b class="text-dark">${b.dateString}</b><br><small class="text-muted">ID: ${b.id.slice(0,5)} | ทำโดย: ${b.handledBy || 'ไม่ระบุ'}</small></td>
-                <td class="text-center border-bottom"><span class="badge bg-light text-dark border px-3 py-2 rounded-pill">${b.items.length} รายการ</span></td>
+            <tr>
+                <td class="ps-3 py-3 border-bottom">
+                    <b class="text-dark">${esc(b.dateString || dayKey(b.timestamp))}</b><br>
+                    <small class="text-muted">รหัส: ${esc(b.id.slice(0, 5))} | ทำโดย: ${esc(b.handledBy || 'ไม่ระบุ')}</small>
+                </td>
+                <td class="text-center border-bottom"><span class="badge bg-light text-dark border px-3 py-2 rounded-pill">${esc((b.items || []).length)} รายการ</span></td>
                 <td class="text-end pe-3 border-bottom">
-                    <button class="btn btn-sm btn-primary rounded-pill px-3 me-1" onclick="window.viewBillDetail('${b.id}')">ดูรายละเอียด</button>
-                    <button class="btn btn-sm btn-outline-danger rounded-circle bg-white" onclick="window.deleteBill('${b.id}')"><i class="bi bi-trash"></i></button>
-                </td></tr>`).join('');
+                    <button class="btn btn-sm btn-primary rounded-pill px-3 me-1" onclick="window.viewBillDetail('${esc(b.id)}')">ดูรายละเอียด</button>
+                    <button class="btn btn-sm btn-outline-danger rounded-circle bg-white" data-admin-only aria-label="ลบบิล" onclick="window.deleteBill('${esc(b.id)}')"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                </td>
+            </tr>`).join('');
+        applyRoleVisibility();
     };
 
-    window.deleteBill = async (id) => {
-        if((await Swal.fire({ title:'ลบประวัติบิล?', text: 'ข้อมูลนี้จะไม่สามารถกู้คืนได้', icon:'warning', showCancelButton:true, confirmButtonColor: '#ef4444' })).isConfirmed)
-            await deleteDoc(doc(db, "bills", id));
+    // =========================================================
+    // รายงานการขาย
+    // =========================================================
+
+    window.renderSalesSummary = () => {
+        const type     = document.getElementById('summaryType').value;
+        const dateVal  = document.getElementById('summaryDate').value;
+        const monthVal = document.getElementById('summaryMonth').value;
+
+        // จัดกลุ่มตามวันที่ของเขตเวลาไทย ไม่ใช่ UTC
+        let filtered = posSalesHistory;
+        if (type === 'daily' && dateVal)   filtered = posSalesHistory.filter(s => dayKey(s.timestamp) === dateVal);
+        if (type === 'monthly' && monthVal) filtered = posSalesHistory.filter(s => monthKey(s.timestamp) === monthVal);
+
+        let total = 0, cash = 0, credit = 0, fromDeposit = 0;
+
+        document.getElementById('posHistoryList').innerHTML = filtered.length
+            ? filtered.map(s => {
+                const amount = s.totalAmount || 0;
+                total += amount;
+                if (s.paymentMethod === 'credit') {
+                    // แยกส่วนที่เป็นหนี้จริง ออกจากส่วนที่ตัดจากเงินสแกน
+                    const creditPart  = (typeof s.creditAmount === 'number') ? s.creditAmount : amount;
+                    const depositPart = (typeof s.depositAmount === 'number') ? s.depositAmount : 0;
+                    credit += creditPart;
+                    fromDeposit += depositPart;
+                } else {
+                    cash += amount;
+                }
+
+                const isCash = s.paymentMethod === 'cash';
+                const label  = isCash ? 'เงินสด' : 'เซ็น';
+                let detail = '';
+                if (!isCash) {
+                    const creditPart  = (typeof s.creditAmount === 'number') ? s.creditAmount : amount;
+                    const depositPart = (typeof s.depositAmount === 'number') ? s.depositAmount : 0;
+                    if (depositPart > 0) detail = `<div class="text-muted" style="font-size:0.75rem;">ตัดเงินสแกน ฿${money(depositPart)}${creditPart > 0 ? ` · เป็นหนี้ ฿${money(creditPart)}` : ''}</div>`;
+                    if (s.debtorName) detail += `<div class="text-muted" style="font-size:0.75rem;">${esc(s.debtorName)}</div>`;
+                }
+
+                return `<tr>
+                    <td class="ps-3 py-3 border-bottom">${esc(new Date(s.timestamp).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: SHOP_TZ }))}</td>
+                    <td class="border-bottom">
+                        <span class="badge bg-${isCash ? 'success' : 'warning'} ${isCash ? '' : 'text-dark'} rounded-pill px-3">${esc(label)}</span>
+                        <small class="text-muted ms-2 d-none d-sm-inline"><i class="bi bi-person me-1" aria-hidden="true"></i>${esc(s.handledBy || 'ไม่ระบุ')}</small>
+                        ${detail}
+                    </td>
+                    <td class="fw-bold text-end pe-3 py-3 border-bottom text-dark">฿${money(amount)}</td>
+                </tr>`;
+            }).join('')
+            : '<tr><td colspan="3" class="text-center text-muted py-5">ไม่มีรายการขายในช่วงที่เลือก</td></tr>';
+
+        document.getElementById('todayTotal').innerText  = `฿${num(total)}`;
+        document.getElementById('todayCash').innerText   = `฿${num(cash)}`;
+        document.getElementById('todayCredit').innerText = `฿${num(credit)}`;
     };
 
+    // เริ่มต้นหน้าจอ
+    window.checkLoginStatus();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
